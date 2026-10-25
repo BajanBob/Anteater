@@ -1,0 +1,29 @@
+# Wireless / IP camera manufacturers. Cameras are everywhere, so these are LOW;
+# the grid_square baseline is what makes a new one in a familiar place stand out.
+# Set-up SSID heuristics live in anteater/detections/cameras.py.
+description: Network camera manufacturers
+category: camera
+severity: low
+
+rules:
+  - name: Hikvision
+    match: {vendor: ["(?i)hikvision"]}
+  - name: Dahua
+    match: {vendor: ["(?i)dahua"]}
+  - name: Axis Communications
+    match: {vendor: ["(?i)axis communications"]}
+  - name: Hanwha Vision
+    match: {vendor: ["(?i)hanwha (vision|techwin)"]}
+  - name: Uniview
+    match: {vendor: ["(?i)uniview"]}
+  - name: Reolink
+    match: {vendor: ["(?i)reolink"]}
+  - name: Wyze
+    match: {vendor: ["(?i)wyze"]}
+  - name: Arlo
+    match: {vendor: ["(?i)\\barlo\\b"]}
+  - name: Ring (Amazon) set-up network
+    match:
+      ssid: ["^Ring-[0-9A-Fa-f]{4,}$"]
+      kinds: [wifi_ap]
+    note: Ring devices broadcast a Ring-xxxx SSID while being set up

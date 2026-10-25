@@ -1,0 +1,17 @@
+# ITU Region 3: Asia-Pacific.
+# Cellular entries are downlinks (what towers transmit). priority: 1 low .. 3 high.
+# SRD allocations vary by country (Japan 920-928, Australia 915-928); adjust locally.
+region: 3
+name: ITU Region 3 (Asia-Pacific)
+bands:
+  - {name: "433 MHz devices (keyfobs, TPMS)", lo_mhz: 433.05, hi_mhz: 434.79, priority: 2, why: "TPMS and trackers"}
+  - {name: "LTE 700 APT downlink (B28)", lo_mhz: 758, hi_mhz: 803, priority: 2, why: "fake base stations"}
+  - {name: "SRD 915-928 MHz", lo_mhz: 915, hi_mhz: 928, priority: 2, why: "LoRa trackers"}
+  - {name: "GSM 900 downlink", lo_mhz: 935, hi_mhz: 960, priority: 3, why: "2G IMSI catchers"}
+  - {name: "GNSS L1", lo_mhz: 1559, hi_mhz: 1610, priority: 2, why: "a strong carrier here is a jammer"}
+  - {name: "GSM/LTE 1800 downlink", lo_mhz: 1805, hi_mhz: 1880, priority: 3, why: "2G/4G fake base stations"}
+  - {name: "UMTS/LTE 2100 downlink", lo_mhz: 2110, hi_mhz: 2170, priority: 2, why: "3G/4G cells"}
+  - {name: "ISM 2.4 GHz", lo_mhz: 2400, hi_mhz: 2483.5, priority: 3, why: "drone control, video links, Wi-Fi/BLE"}
+  - {name: "5.8 GHz (FPV video, drone links)", lo_mhz: 5725, hi_mhz: 5875, priority: 3, why: "drone video downlinks"}
+  - {name: "X band traffic radar", lo_mhz: 10500, hi_mhz: 10550, priority: 2, why: "speed radar"}
+  - {name: "K band radar / sensors", lo_mhz: 24050, hi_mhz: 24250, priority: 1, why: "needs a downconverter"}

@@ -1,0 +1,30 @@
+# Bluetooth item trackers and TPMS. On their own these are INFO: everyone has
+# them. They matter when follow_score sees the same one in several of your places.
+description: Item trackers and tyre-pressure sensors
+category: tracker
+severity: info
+
+rules:
+  - name: Apple Find My (AirTag / Find My accessory, separated)
+    # Apple company id 0x004C, payload type 0x12 (offline finding), length 0x19
+    match:
+      ble_mfr_prefix: ["4c001219"]
+      kinds: [ble]
+    severity: low
+    note: Find My advertisement in 'separated from owner' mode; AirTags and third-party Find My tags
+
+  - name: Tile
+    match:
+      ble_service_uuid: ["feed", "feec"]
+      kinds: [ble]
+
+  - name: Samsung SmartTag
+    match:
+      ble_service_uuid: ["fd5a"]
+      kinds: [ble]
+
+  - name: TPMS sensor
+    # TPMS observations come from an rtl_433 bridge as kind 'tpms', subject = sensor id
+    match:
+      kinds: [tpms]
+    note: tyre-pressure sensor; follow_score tracks vehicles that stay near you

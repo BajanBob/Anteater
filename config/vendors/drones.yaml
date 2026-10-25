@@ -1,0 +1,24 @@
+# Drone manufacturers and Remote ID. The drones engine decodes Remote ID
+# messages; these rules catch the radios themselves (controllers, docks).
+description: Drone makers and ASTM F3411 Remote ID transports
+category: drone
+severity: medium
+
+rules:
+  - name: DJI
+    match: {vendor: ["(?i)\\bdji\\b"]}
+  - name: Autel Robotics
+    match: {vendor: ["(?i)autel"]}
+  - name: Parrot
+    match: {vendor: ["(?i)^parrot"]}
+  - name: Skydio
+    match: {vendor: ["(?i)skydio"]}
+
+  - name: Remote ID over Bluetooth (service 0xFFFA)
+    match:
+      ble_service_uuid: ["fffa"]
+      kinds: [ble]
+  - name: Remote ID over Wi-Fi (vendor IE FA:0B:BC)
+    match:
+      vendor_ie: ["fa0bbc"]
+      kinds: [wifi_ap]

@@ -1,0 +1,26 @@
+# Synthetic replay: the selftest scenario, one observation per line.
+# Positions walk ~15 km across central London; nothing here is real data.
+# Try: anteater detect --replay tests/data/sample.jsonl --no-db
+{"kind":"wifi_ap","subject":"00:11:22:00:00:01","ts":1767225600.0,"ssid":"CoffeeShop","lat":51.5007,"lon":-0.1246,"crypt":"WPA2","hidden":false}
+{"kind":"ble","subject":"c2:11:22:33:44:55","ts":1767225600.0,"rssi":-60,"lat":51.5007,"lon":-0.1246,"extra":{"manufacturer_data":["4c0012190011"]}}
+{"kind":"wifi_ap","subject":"00:11:22:00:00:03","ts":1767225660.0,"ssid":"bad\u0001ssid","lat":51.5007,"lon":-0.1246,"crypt":"WPA2"}
+{"kind":"wifi_ap","subject":"00:aa:00:00:00:01","ts":1767225720.0,"ssid":"HomeNet","lat":51.5007,"lon":-0.1246,"crypt":"WPA2-PSK"}
+{"kind":"wifi_ap","subject":"00:aa:00:00:00:02","ts":1767225780.0,"ssid":"HomeNet","lat":51.5007,"lon":-0.1246,"crypt":"WPA2-PSK"}
+{"kind":"wifi_ap","subject":"02:aa:00:00:00:03","ts":1767225840.0,"ssid":"HomeNet","lat":51.5007,"lon":-0.1246,"crypt":"Open"}
+{"kind":"wifi_ap","subject":"02:bb:00:00:00:01","ts":1767225900.0,"ssid":"FreeWiFi","lat":51.5007,"lon":-0.1246,"crypt":"Open","extra":{"responded_ssids":["HomeNet","eduroam","Airport_Free","Starbucks"]}}
+{"kind":"ble","subject":"c1:00:00:00:00:01","ts":1767225960.0,"lat":51.5007,"lon":-0.1246,"extra":{"manufacturer_data":["4c00121900aabbccdd"]}}
+{"kind":"wifi_ap","subject":"00:11:22:00:00:02","ts":1767226200.0,"ssid":"CoffeeShop","lat":51.5007,"lon":-0.1246,"crypt":"WPA2","hidden":false}
+{"kind":"ble","subject":"c2:11:22:33:44:55","ts":1767226800.0,"rssi":-60,"lat":51.5307,"lon":-0.0946,"extra":{"manufacturer_data":["4c0012190011"]}}
+{"kind":"cell","subject":"234-15-100-2001","ts":1767227400.0,"lat":51.5007,"lon":-0.1246,"extra":{"rat":"LTE","mcc":234,"mnc":15}}
+{"kind":"cell","subject":"234-15-999-9999","ts":1767227430.0,"lat":51.5007,"lon":-0.1246,"extra":{"rat":"GSM","cipher":"A5/1","arfcn":30,"neighbours":0}}
+{"kind":"cell","subject":"234-15-999-9999","ts":1767227460.0,"lat":51.5007,"lon":-0.1246,"extra":{"event":"paging"}}
+{"kind":"cell","subject":"234-15-999-9999","ts":1767227520.0,"lat":51.5007,"lon":-0.1246,"extra":{"event":"paging"}}
+{"kind":"cell","subject":"234-15-999-9999","ts":1767227580.0,"lat":51.5007,"lon":-0.1246,"extra":{"event":"paging"}}
+{"kind":"cell","subject":"234-15-999-9999","ts":1767227640.0,"lat":51.5007,"lon":-0.1246,"extra":{"event":"paging"}}
+{"kind":"cell","subject":"234-15-999-9999","ts":1767227700.0,"lat":51.5007,"lon":-0.1246,"extra":{"event":"paging"}}
+{"kind":"cell","subject":"234-15-999-9999","ts":1767227760.0,"lat":51.5007,"lon":-0.1246,"extra":{"event":"paging"}}
+{"kind":"ble","subject":"c2:11:22:33:44:55","ts":1767228000.0,"rssi":-60,"lat":51.560700000000004,"lon":-0.0646,"extra":{"manufacturer_data":["4c0012190011"]}}
+{"kind":"ble","subject":"d0:00:00:00:00:01","ts":1767228000.0,"lat":51.5007,"lon":-0.1246,"extra":{"service_data":{"fffa":"0d01021253454c46544553542d5541532d31000000000000000000"}}}
+{"kind":"sdr","subject":"sdr:10525.0","ts":1767228060.0,"freq_mhz":10525.0,"lat":51.5007,"lon":-0.1246,"extra":{"snr_db":22.0}}
+{"kind":"ble","subject":"c2:11:22:33:44:55","ts":1767229200.0,"rssi":-60,"lat":51.590700000000005,"lon":-0.034600000000000006,"extra":{"manufacturer_data":["4c0012190011"]}}
+{"kind":"ble","subject":"c2:11:22:33:44:55","ts":1767230400.0,"rssi":-60,"lat":51.6207,"lon":-0.004600000000000007,"extra":{"manufacturer_data":["4c0012190011"]}}

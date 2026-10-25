@@ -1,0 +1,16 @@
+# ITU Region 2: the Americas.
+# Cellular entries are downlinks (what towers transmit). priority: 1 low .. 3 high.
+region: 2
+name: ITU Region 2 (Americas)
+bands:
+  - {name: "433.92 MHz devices (keyfobs, sensors)", lo_mhz: 433.05, hi_mhz: 434.79, priority: 1, why: "remotes and sensors"}
+  - {name: "LTE 700 downlink (B12/13/17)", lo_mhz: 728, hi_mhz: 756, priority: 2, why: "fake base stations"}
+  - {name: "Cellular 850 downlink", lo_mhz: 869, hi_mhz: 894, priority: 3, why: "2G/3G/4G IMSI catchers"}
+  - {name: "ISM 902-928 MHz", lo_mhz: 902, hi_mhz: 928, priority: 2, why: "LoRa trackers, ALPR mesh links"}
+  - {name: "GNSS L1", lo_mhz: 1559, hi_mhz: 1610, priority: 2, why: "a strong carrier here is a jammer"}
+  - {name: "PCS 1900 downlink", lo_mhz: 1930, hi_mhz: 1995, priority: 3, why: "2G/4G fake base stations"}
+  - {name: "AWS downlink", lo_mhz: 2110, hi_mhz: 2200, priority: 2, why: "4G cells"}
+  - {name: "ISM 2.4 GHz", lo_mhz: 2400, hi_mhz: 2483.5, priority: 3, why: "drone control, video links, Wi-Fi/BLE"}
+  - {name: "5.8 GHz (FPV video, drone links)", lo_mhz: 5725, hi_mhz: 5875, priority: 3, why: "drone video downlinks"}
+  - {name: "X band traffic radar", lo_mhz: 10500, hi_mhz: 10550, priority: 2, why: "speed radar"}
+  - {name: "K band radar / sensors", lo_mhz: 24050, hi_mhz: 24250, priority: 1, why: "needs a downconverter"}

@@ -1,0 +1,30 @@
+# Other licence-plate-reader vendors and the modems that backhaul them.
+# Vendor names are matched against the IEEE registry (config/oui.csv).
+description: ALPR vendors other than Flock, and likely backhaul hardware
+category: alpr
+severity: medium
+
+rules:
+  - name: Rekor
+    match:
+      vendor: ["(?i)\\brekor\\b"]
+  - name: Vigilant Solutions
+    match:
+      vendor: ["(?i)vigilant solutions"]
+  - name: Genetec
+    match:
+      vendor: ["(?i)\\bgenetec\\b"]
+    severity: low
+    note: Genetec also makes general video-management products
+
+  - name: Cradlepoint router (possible ALPR / trailer backhaul)
+    match:
+      vendor: ["(?i)cradlepoint"]
+      kinds: [wifi_ap]
+    severity: info
+    note: common on police vehicles and camera trailers, but also on buses, kiosks and shops
+  - name: Sierra Wireless modem (possible backhaul)
+    match:
+      vendor: ["(?i)sierra wireless"]
+      kinds: [wifi_ap]
+    severity: info

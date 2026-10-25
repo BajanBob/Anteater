@@ -1,0 +1,14 @@
+# Copy to config/allowlist.yaml (gitignored: it lists YOUR devices).
+# Allowlisted devices never raise findings or count towards following.
+
+devices:
+  - mac: "aa:bb:cc:dd:ee:01"
+    note: my phone
+  - mac: "aa:bb:cc:dd:ee:02"
+    note: my laptop
+  - subject: "c2:00:00:00:00:00"
+    note: my own AirTag (BLE address as Kismet reports it)
+
+# Geohash prefixes treated as home/work: nothing seen there counts as following.
+# Find yours with:  python -c "from anteater.geo import encode; print(encode(LAT, LON, 6))"
+home_cells: []

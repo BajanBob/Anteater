@@ -1,0 +1,61 @@
+# Copy to config/anteater.toml (gitignored) and edit.
+# Any key can be overridden with ANTEATER_<SECTION>__<KEY> in .env or the environment.
+
+log_level = "INFO"
+
+[general]
+# PostgreSQL / TimescaleDB from docker-compose.yml:
+db_url = "postgresql+asyncpg://anteater:anteater@localhost:5432/anteater"
+# or a single file, no server needed:
+# db_url = "sqlite+aiosqlite:///./anteater.db"
+grid_precision = 7          # geohash length: 7 = ~150 m squares
+data_dir = "data"           # baseline.json and the evidence log live here
+home_cells = []             # geohash prefixes of home/work, e.g. ["gcpvj0"]
+allowlist = "config/allowlist.yaml"
+
+[kismet]
+url = "ws://localhost:2501"
+user = "kismet"
+password = "changeme"
+api_key = ""                # if set, used instead of user/password
+poll_seconds = 2.0
+
+[gps]
+source = "gpsd"             # gpsd | fixed | none
+host = "localhost"
+port = 2947
+# fixed_lat = 51.5007
+# fixed_lon = -0.1246
+
+[detect]
+engines = ["all"]           # or e.g. ["fingerprints", "follow_score", "-radar"]
+follow_min_cells = 3        # distinct ~1.2 km places before a device counts as following
+follow_min_sessions = 2
+follow_min_minutes = 20
+ssid_warmup_seconds = 300
+
+[alerts]
+min_severity = "low"        # info | low | medium | high | critical
+dedupe_seconds = 300
+audio = true
+tts = true                  # needs espeak-ng (Linux) or `say` (macOS)
+video = false               # 1080p HUD clips, needs the alerts extra
+clips_dir = "clips"
+mqtt = false
+mqtt_host = "localhost"
+mqtt_port = 1883
+mqtt_topic = "anteater/alerts"
+evidence_log = "data/evidence.jsonl"
+
+[termite]
+itu_region = 2              # 1 Europe/Africa, 2 Americas, 3 Asia-Pacific
+driver = ""                 # SoapySDR args, e.g. "driver=rtlsdr" or "driver=hackrf"
+sample_rate = 10e6
+gain_db = 30
+min_freq_hz = 433e6
+max_freq_hz = 15e9
+sweep_budget_s = 120
+
+[api]
+host = "127.0.0.1"          # keep on localhost unless you add your own auth in front
+port = 8080

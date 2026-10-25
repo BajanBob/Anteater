@@ -1,0 +1,24 @@
+# Radar bands for the radar engine (termite SDR observations).
+# Above your SDR's range you need a downconverter; pass its LO to
+# `termite scan --downconverter-lo`.
+description: Traffic radar and 24 GHz sensors
+category: radar
+severity: medium
+rules: []
+
+bands:
+  - name: X band traffic radar
+    lo_mhz: 10500
+    hi_mhz: 10550
+    severity: medium
+    note: older traffic radar; also automatic door openers in some countries
+  - name: K band (traffic radar or 24 GHz motion/door sensor)
+    lo_mhz: 24050
+    hi_mhz: 24250
+    severity: low
+    note: shared with very common door and motion sensors; persistence matters more than one hit
+  - name: Ka band traffic radar
+    lo_mhz: 33400
+    hi_mhz: 36000
+    severity: medium
+    note: modern police radar

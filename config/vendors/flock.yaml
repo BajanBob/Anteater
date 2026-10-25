@@ -1,0 +1,30 @@
+# Flock Safety ALPR cameras.
+#
+# `vendor` patterns match the IEEE organisation name, so they work once
+# `anteater fp sync` has filled config/oui.csv. SSID / name patterns are
+# community-reported and should be confirmed against devices you have seen.
+# Extra heuristics live in anteater/detections/flock.py.
+description: Flock Safety licence-plate cameras and their radios
+category: alpr
+severity: high
+
+rules:
+  - name: Flock Safety (registered OUI)
+    match:
+      vendor: ["(?i)flock\\s*safety"]
+      kinds: [wifi_ap, wifi_client, ble]
+    note: MAC registered to Flock Safety in the IEEE registry
+
+  - name: Flock-style SSID
+    match:
+      ssid: ["^Flock[-_ ][0-9A-Fa-f]{3,}$"]
+      kinds: [wifi_ap]
+    severity: medium
+    note: SSID follows the Flock-<hex> pattern; confirm on site before relying on it
+
+  - name: Flock-style BLE name
+    match:
+      name: ["(?i)^flock"]
+      kinds: [ble]
+    severity: medium
+    note: BLE local name starts with Flock

@@ -19,7 +19,7 @@ NESTED = "__"
 
 class GeneralSettings(BaseModel):
     db_url: str = "sqlite+aiosqlite:///./anteater.db"
-    grid_precision: int = Field(7, ge=4, le=9)
+    grid_precision: int = Field(default=7, ge=4, le=9)
     data_dir: Path = Path("data")
     # geohash prefixes treated as "home": devices seen there don't count towards following
     home_cells: list[str] = Field(default_factory=list)
@@ -31,7 +31,7 @@ class KismetSettings(BaseModel):
     user: str = "kismet"
     password: str = ""
     api_key: str = ""
-    poll_seconds: float = Field(2.0, gt=0)
+    poll_seconds: float = Field(default=2.0, gt=0)
 
     @property
     def http_url(self) -> str:
@@ -84,7 +84,7 @@ class DetectSettings(BaseModel):
 
 
 class TermiteSettings(BaseModel):
-    itu_region: int = Field(2, ge=1, le=3)
+    itu_region: int = Field(default=2, ge=1, le=3)
     driver: str = ""
     sample_rate: float = 10e6
     gain_db: float = 30.0

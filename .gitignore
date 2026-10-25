@@ -1,0 +1,67 @@
+# ---------------------------------------------------------------- python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ----------------------------------------------------------------- build
+build/anteater/
+build/lib/
+dist/
+*.spec.bak
+*.manifest
+
+# ------------------------------------- runtime artifacts: huge, personal
+*.kismet
+*.kismet-journal
+*.kismet~*
+*.pcapng
+*.pcap
+*.cap
+anteater.db
+anteater.db-*
+data/
+logs/
+clips/
+waterfall/
+pgdata/
+grafana-data/
+artifacts/
+
+# --------------------------------------------------------------- secrets
+.env
+config/anteater.toml
+config/allowlist.yaml
+config/cells.yaml
+*.npz
+*.pem
+*.pfx
+*.key
+
+# ------------------------------------------------------------ os/editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+
+# ---------------------------------------------------------------------
+# KEEP THESE. They are the product's brain, not generated junk.
+# The ! lines MUST come after the patterns above.
+# ---------------------------------------------------------------------
+!config/vendors/*.yaml
+!config/spectrum/*.yaml
+!config/*.example.*
+!config/kismet_site.conf
+!config/oui.csv

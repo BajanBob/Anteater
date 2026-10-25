@@ -11,7 +11,7 @@ from __future__ import annotations
 import time
 from collections import deque
 
-from anteater.detections.base import Context, CELL, Detector, Finding, Observation
+from anteater.detections.base import CELL, Context, Detector, Finding, Observation
 from anteater.scoring.severity import Severity
 
 NIGHT_HOURS = range(0, 6)
@@ -40,8 +40,14 @@ class CellPingAnomaly(Detector):
 
         if event == "silent_sms":
             out.append(
-                self.finding(obs, Severity.HIGH, "silent (type-0) SMS received", 0.8,
-                             tower=tower, pid=obs.extra.get("pid"))
+                self.finding(
+                    obs,
+                    Severity.HIGH,
+                    "silent (type-0) SMS received",
+                    0.8,
+                    tower=tower,
+                    pid=obs.extra.get("pid"),
+                )
             )
             return out
         if event != "paging":
@@ -56,20 +62,47 @@ class CellPingAnomaly(Detector):
         if hour in NIGHT_HOURS and len(self.pages) >= 3 and (tower, "night") not in self.reported:
             self.reported.add((tower, "night"))
             out.append(
-                self.finding(obs, Severity.MEDIUM, "paged repeatedly at night", 0.5,
-                             pages_last_hour=len(self.pages), local_hour=hour, tower=tower)
+                self.finding(
+                    obs,
+                    Severity.MEDIUM,
+                    "paged repeatedly at night",
+                    0.5,
+                    pages_last_hour=len(self.pages),
+                    local_hour=hour,
+                    tower=tower,
+                )
             )
-        if len(self.pages) >= BURST_MIN and (tower, f"burst{len(self.pages) // BURST_MIN}") not in self.reported:
+        if (
+            len(self.pages) >= BURST_MIN
+            and (tower, f"burst{len(self.pages) // BURST_MIN}") not in self.reported
+        ):
             self.reported.add((tower, f"burst{len(self.pages) // BURST_MIN}"))
             out.append(
-                self.finding(obs, Severity.MEDIUM, "paging burst", 0.5,
-                             pages_last_hour=len(self.pages), tower=tower)
+                self.finding(
+                    obs,
+                    Severity.MEDIUM,
+                    "paging burst",
+                    0.5,
+                    pages_last_hour=len(self.pages),
+                    tower=tower,
+                )
             )
         cells = self.tower_cells.get(tower, set())
-        if self.tower_pages[tower] >= 3 and len(cells) == 1 and (tower, "single") not in self.reported:
+        if (
+            self.tower_pages[tower] >= 3
+            and len(cells) == 1
+            and (tower, "single") not in self.reported
+        ):
             self.reported.add((tower, "single"))
             out.append(
-                self.finding(obs, Severity.LOW, "paging tower only ever seen in one grid cell", 0.3,
-                             tower=tower, pages=self.tower_pages[tower], cell=next(iter(cells)))
+                self.finding(
+                    obs,
+                    Severity.LOW,
+                    "paging tower only ever seen in one grid cell",
+                    0.3,
+                    tower=tower,
+                    pages=self.tower_pages[tower],
+                    cell=next(iter(cells)),
+                )
             )
         return out

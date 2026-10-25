@@ -6,7 +6,13 @@ import logging
 from pathlib import Path
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncConnection,
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from anteater.db.models import Base
 
@@ -37,12 +43,14 @@ async def create_all(engine: AsyncEngine) -> None:
             await make_hypertable(conn)
 
 
-async def make_hypertable(conn) -> None:  # type: ignore[no-untyped-def]
+async def make_hypertable(conn: AsyncConnection) -> None:
     """Turn observations into a TimescaleDB hypertable when the extension is there."""
     try:
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
         await conn.execute(
-            text("SELECT create_hypertable('observations', 'ts', if_not_exists => TRUE, migrate_data => TRUE)")
+            text(
+                "SELECT create_hypertable('observations', 'ts', if_not_exists => TRUE, migrate_data => TRUE)"
+            )
         )
     except Exception as exc:  # plain PostgreSQL works too, just without compression/retention
         log.info("TimescaleDB not available (%s); using a plain table", exc.__class__.__name__)
@@ -56,9 +64,9 @@ def upgrade(url: str) -> str:
     import asyncio
 
     try:
-        from alembic import command
         from alembic.config import Config
 
+        from alembic import command
         from anteater.paths import data_dir
 
         script_dir = data_dir("alembic")

@@ -37,7 +37,9 @@ def test_downconverter_brings_band_in_range():
 
 
 def test_tiny_budget_skips_low_priority():
-    plan = allocate(BANDS, budget_s=0.2, sample_rate=10e6, min_dwell_s=0.05, freq_range_hz=(24e6, 6e9))
+    plan = allocate(
+        BANDS, budget_s=0.2, sample_rate=10e6, min_dwell_s=0.05, freq_range_hz=(24e6, 6e9)
+    )
     assert plan.seconds <= 0.2 + 1e-9
     assert "wide" in {b.name for b, _ in plan.skipped}
 
@@ -102,7 +104,7 @@ def test_rff_classifier_separates_emitters(tmp_path):
     X, y = [], []
     # The receiver is centred on 0 Hz at 2 MS/s, so a carrier must sit inside +/-0.9 MHz to exist.
     for label, carrier in (("tone", {0.5e6: 25.0}), ("noise", {})):
-        for i in range(20):
+        for _ in range(20):
             rx = SimulatedReceiver(2e6, carriers=carrier, seed=int(rng.integers(1e9)))
             X.append(feature_vector(rx.read(8192), 2e6))
             y.append(label)

@@ -56,16 +56,28 @@ def sweep_once(
             rx.tune(rf - downconverter_lo_hz if downconverter_lo_hz and centre > top else rf)
             samples = int(max(4096, min(rx.sample_rate * d.seconds_per_step, 4e6)))
             freqs, power = psd_db(rx.read(samples), rx.sample_rate, NFFT)
-            seen += [(rf + c.offset_hz, c) for c in find_carriers(freqs, power, min_snr_db)
-                     if lo_hz <= rf + c.offset_hz <= hi_hz]
+            seen += [
+                (rf + c.offset_hz, c)
+                for c in find_carriers(freqs, power, min_snr_db)
+                if lo_hz <= rf + c.offset_hz <= hi_hz
+            ]
         for f_hz, c in _merge(seen, bin_hz):
             f_mhz = f_hz / 1e6
-            out.append({
-                "kind": "sdr", "subject": f"sdr:{f_mhz:.1f}", "ts": time.time(), "freq_mhz": f_mhz,
-                "lat": lat, "lon": lon,
-                "extra": {"snr_db": round(c.snr_db, 1), "bandwidth_khz": round(c.bandwidth_hz / 1e3, 1),
-                          "band": d.band.name},
-            })
+            out.append(
+                {
+                    "kind": "sdr",
+                    "subject": f"sdr:{f_mhz:.1f}",
+                    "ts": time.time(),
+                    "freq_mhz": f_mhz,
+                    "lat": lat,
+                    "lon": lon,
+                    "extra": {
+                        "snr_db": round(c.snr_db, 1),
+                        "bandwidth_khz": round(c.bandwidth_hz / 1e3, 1),
+                        "band": d.band.name,
+                    },
+                }
+            )
     return out
 
 

@@ -77,7 +77,13 @@ def create_app(
                 with contextlib.suppress(asyncio.CancelledError):
                     await poller
 
-    app = FastAPI(title="Anteater", version=__version__, docs_url="/api/docs", redoc_url=None, lifespan=lifespan)
+    app = FastAPI(
+        title="Anteater",
+        version=__version__,
+        docs_url="/api/docs",
+        redoc_url=None,
+        lifespan=lifespan,
+    )
     app.state.settings = settings
     app.state.repo = repo
     app.state.pipeline = pipeline
@@ -121,7 +127,9 @@ def create_app(
         try:
             body = await request.json()
         except ValueError:  # includes json.JSONDecodeError
-            raise HTTPException(400, "body must be JSON: one observation object or a list of them") from None
+            raise HTTPException(
+                400, "body must be JSON: one observation object or a list of them"
+            ) from None
         items = body if isinstance(body, list) else [body]
         if len(items) > MAX_INGEST:
             raise HTTPException(413, f"at most {MAX_INGEST} observations per request")

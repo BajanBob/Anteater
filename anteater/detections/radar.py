@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from anteater.detections.base import Context, SDR, Detector, Finding, Observation
+from anteater.detections.base import SDR, Context, Detector, Finding, Observation
 from anteater.scoring.severity import Severity
 
 MIN_SNR_DB = 10.0
@@ -27,7 +27,9 @@ class RadarBand:
 
 DEFAULT_BANDS = (
     RadarBand("X band traffic radar", 10500.0, 10550.0, Severity.MEDIUM),
-    RadarBand("K band (traffic radar or 24 GHz motion/door sensor)", 24050.0, 24250.0, Severity.LOW),
+    RadarBand(
+        "K band (traffic radar or 24 GHz motion/door sensor)", 24050.0, 24250.0, Severity.LOW
+    ),
     RadarBand("Ka band traffic radar", 33400.0, 36000.0, Severity.MEDIUM),
 )
 
@@ -36,8 +38,13 @@ def bands_from_table(table: Any) -> tuple[RadarBand, ...]:
     if not table:
         return DEFAULT_BANDS
     return tuple(
-        RadarBand(str(b["name"]), float(b["lo_mhz"]), float(b["hi_mhz"]),
-                  Severity.parse(b.get("severity", "low")), str(b.get("note", "")))
+        RadarBand(
+            str(b["name"]),
+            float(b["lo_mhz"]),
+            float(b["hi_mhz"]),
+            Severity.parse(b.get("severity", "low")),
+            str(b.get("note", "")),
+        )
         for b in table
     )
 
@@ -68,8 +75,15 @@ class Radar(Detector):
                     return []  # already reported at this level
                 self.level[band.name] = sev
                 return [
-                    self.finding(obs, sev, band.name, 0.4 + 0.1 * int(sev),
-                                 freq_mhz=round(obs.freq_mhz, 3), snr_db=round(snr, 1),
-                                 sweeps_seen=n, note=band.note)
+                    self.finding(
+                        obs,
+                        sev,
+                        band.name,
+                        0.4 + 0.1 * int(sev),
+                        freq_mhz=round(obs.freq_mhz, 3),
+                        snr_db=round(snr, 1),
+                        sweeps_seen=n,
+                        note=band.note,
+                    )
                 ]
         return []

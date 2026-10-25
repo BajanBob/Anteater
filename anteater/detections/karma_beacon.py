@@ -8,7 +8,7 @@ AP beaconed (``beaconed_ssids``) and those it sent probe responses for
 
 from __future__ import annotations
 
-from anteater.detections.base import Context, WIFI_AP, Detector, Finding, Observation
+from anteater.detections.base import WIFI_AP, Context, Detector, Finding, Observation
 from anteater.scoring.severity import Severity
 
 KARMA_MIN_FOREIGN = 3
@@ -43,17 +43,25 @@ class KarmaBeacon(Detector):
             if self.reported.get(bssid, 0) < level:
                 out.append(
                     self.finding(
-                        obs, Severity.HIGH if level == 2 else Severity.MEDIUM,
+                        obs,
+                        Severity.HIGH if level == 2 else Severity.MEDIUM,
                         "KARMA-style AP: answers probes for SSIDs it never beacons",
                         0.8 if level == 2 else 0.6,
-                        foreign_ssids=sorted(foreign)[:20], beaconed_ssids=sorted(beaconed)[:20],
+                        foreign_ssids=sorted(foreign)[:20],
+                        beaconed_ssids=sorted(beaconed)[:20],
                     )
                 )
         if len(beaconed) >= FLOOD_MIN_SSIDS and self.reported.get(bssid, 0) < 3:
             level = 3
             out.append(
-                self.finding(obs, Severity.MEDIUM, "beacon flood: one radio advertising many SSIDs", 0.5,
-                             ssid_count=len(beaconed), sample=sorted(beaconed)[:20])
+                self.finding(
+                    obs,
+                    Severity.MEDIUM,
+                    "beacon flood: one radio advertising many SSIDs",
+                    0.5,
+                    ssid_count=len(beaconed),
+                    sample=sorted(beaconed)[:20],
+                )
             )
         if level:
             self.reported[bssid] = max(level, self.reported.get(bssid, 0))

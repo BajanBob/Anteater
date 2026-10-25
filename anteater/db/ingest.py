@@ -13,7 +13,9 @@ log = logging.getLogger(__name__)
 
 
 class BatchWriter:
-    def __init__(self, repo: Repository, batch: int = 500, flush_s: float = 1.0, maxsize: int = 50_000) -> None:
+    def __init__(
+        self, repo: Repository, batch: int = 500, flush_s: float = 1.0, maxsize: int = 50_000
+    ) -> None:
         self.repo = repo
         self.batch = batch
         self.flush_s = flush_s
@@ -58,12 +60,19 @@ class BatchWriter:
                 attempts += 1
                 if attempts >= max_attempts:
                     # a batch that keeps failing would block everything behind it
-                    log.exception("dropping %d observations after %d failed writes", len(self._pending), attempts)
+                    log.exception(
+                        "dropping %d observations after %d failed writes",
+                        len(self._pending),
+                        attempts,
+                    )
                     self.dropped += len(self._pending)
                     self._pending, attempts = [], 0
                 else:
-                    log.warning("write of %d observations failed (attempt %d), retrying",
-                                len(self._pending), attempts)
+                    log.warning(
+                        "write of %d observations failed (attempt %d), retrying",
+                        len(self._pending),
+                        attempts,
+                    )
                     await asyncio.sleep(2)
 
     def start(self) -> None:

@@ -79,7 +79,9 @@ def _ssids(ssid_map: Any) -> list[str]:
     for rec in records:
         if not isinstance(rec, dict):
             continue
-        s = _get(rec, "dot11.advertisedssid.ssid", "dot11.probedssid.ssid", "dot11.respondedssid.ssid")
+        s = _get(
+            rec, "dot11.advertisedssid.ssid", "dot11.probedssid.ssid", "dot11.respondedssid.ssid"
+        )
         if isinstance(s, str) and s and s not in out:
             out.append(s)
     return out
@@ -103,7 +105,9 @@ def device_to_observation(dev: dict[str, Any]) -> Observation | None:
     if kind == WIFI_AP:
         extra["beaconed_ssids"] = _ssids(_get(dev, "dot11.device.advertised_ssid_map"))
         extra["responded_ssids"] = _ssids(_get(dev, "dot11.device.responded_ssid_map"))
-        ies = beacon.get("dot11.advertisedssid.ie_tag_content") if isinstance(beacon, dict) else None
+        ies = (
+            beacon.get("dot11.advertisedssid.ie_tag_content") if isinstance(beacon, dict) else None
+        )
         if ies:
             extra["vendor_ies"] = ies
     elif kind == WIFI_CLIENT:
@@ -136,7 +140,9 @@ def device_to_observation(dev: dict[str, Any]) -> Observation | None:
         rssi=_get(dev, "kismet.common.signal.last_signal"),
         vendor=_vendor(_get(dev, "kismet.device.base.manuf")),
         crypt=str(crypt) if crypt else ("open" if kind == WIFI_AP else None),
-        hidden=bool(cloaked) if cloaked is not None else (ssid in (None, "") if kind == WIFI_AP else None),
+        hidden=bool(cloaked)
+        if cloaked is not None
+        else (ssid in (None, "") if kind == WIFI_AP else None),
         extra=extra,
     )
 
@@ -164,7 +170,9 @@ class KismetCollector:
         import httpx
 
         headers, auth = self._auth()
-        async with httpx.AsyncClient(base_url=self.cfg.http_url, headers=headers, auth=auth, timeout=5) as client:
+        async with httpx.AsyncClient(
+            base_url=self.cfg.http_url, headers=headers, auth=auth, timeout=5
+        ) as client:
             r = await client.get("/system/status.json")
             r.raise_for_status()
             data: dict[str, Any] = r.json()
@@ -199,10 +207,14 @@ class KismetCollector:
         since = -int(max(10, self.cfg.poll_seconds * 5))  # start with the last few seconds
         backoff = 1.0
         try:
-            async with httpx.AsyncClient(base_url=self.cfg.http_url, headers=headers, auth=auth, timeout=15) as client:
+            async with httpx.AsyncClient(
+                base_url=self.cfg.http_url, headers=headers, auth=auth, timeout=15
+            ) as client:
                 while not self._stop.is_set():
                     try:
-                        r = await client.post(f"/devices/last-time/{since}/devices.json", json={"fields": FIELDS})
+                        r = await client.post(
+                            f"/devices/last-time/{since}/devices.json", json={"fields": FIELDS}
+                        )
                         r.raise_for_status()
                         devices = r.json()
                         backoff = 1.0

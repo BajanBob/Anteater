@@ -38,7 +38,14 @@ class LogSink:
     name = "log"
 
     def emit(self, f: Finding) -> None:
-        log.log(_LOG_LEVEL[f.severity], "[%s] %s: %s (%s)", f.severity.label.upper(), f.engine, f.title, f.subject)
+        log.log(
+            _LOG_LEVEL[f.severity],
+            "[%s] %s: %s (%s)",
+            f.severity.label.upper(),
+            f.engine,
+            f.title,
+            f.subject,
+        )
 
 
 class EvidenceSink:
@@ -73,7 +80,9 @@ class MqttSink:
         self.client.loop_start()
 
     def emit(self, f: Finding) -> None:
-        self.client.publish(f"{self.topic}/{f.severity.label}/{f.engine}", _dumps(f.to_dict()), qos=1)
+        self.client.publish(
+            f"{self.topic}/{f.severity.label}/{f.engine}", _dumps(f.to_dict()), qos=1
+        )
 
     def close(self) -> None:
         self.client.loop_stop()

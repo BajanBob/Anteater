@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from typing import Any, Protocol
 
 import numpy as np
@@ -31,17 +31,18 @@ def list_devices() -> list[dict[str, str]]:
 class SoapyReceiver:
     """One RX channel. Never configures or opens a TX stream."""
 
-    def __init__(self, args: str = "", sample_rate: float = 10e6, gain_db: float = 30.0, channel: int = 0) -> None:
+    def __init__(
+        self, args: str = "", sample_rate: float = 10e6, gain_db: float = 30.0, channel: int = 0
+    ) -> None:
         soapy = require_soapy()
         self._soapy = soapy
         self.dev: Any = soapy.Device(args)
         self.channel = channel
         self.dev.setSampleRate(soapy.SOAPY_SDR_RX, channel, sample_rate)
         self.sample_rate = float(self.dev.getSampleRate(soapy.SOAPY_SDR_RX, channel))
-        try:
+        # not every driver supports manual gain mode
+        with suppress(Exception):
             self.dev.setGainMode(soapy.SOAPY_SDR_RX, channel, False)
-        except Exception:
-            pass
         self.dev.setGain(soapy.SOAPY_SDR_RX, channel, gain_db)
         self.stream = self.dev.setupStream(soapy.SOAPY_SDR_RX, soapy.SOAPY_SDR_CF32, [channel])
         self.dev.activateStream(self.stream)
@@ -80,8 +81,13 @@ class SoapyReceiver:
 class SimulatedReceiver:
     """Noise plus fixed carriers. ``carriers`` maps frequency (Hz) to SNR (dB)."""
 
-    def __init__(self, sample_rate: float = 10e6, carriers: dict[float, float] | None = None,
-                 freq_range: tuple[float, float] = (1e6, 40e9), seed: int = 0) -> None:
+    def __init__(
+        self,
+        sample_rate: float = 10e6,
+        carriers: dict[float, float] | None = None,
+        freq_range: tuple[float, float] = (1e6, 40e9),
+        seed: int = 0,
+    ) -> None:
         self.sample_rate = sample_rate
         self.carriers = carriers or {}
         self._range = freq_range
@@ -110,8 +116,9 @@ class SimulatedReceiver:
 
 
 @contextmanager
-def open_receiver(args: str = "", sample_rate: float = 10e6, gain_db: float = 30.0,
-                  simulate: bool = False) -> Iterator[Receiver]:
+def open_receiver(
+    args: str = "", sample_rate: float = 10e6, gain_db: float = 30.0, simulate: bool = False
+) -> Iterator[Receiver]:
     rx: Receiver
     if simulate:
         rx = SimulatedReceiver(sample_rate, carriers={433.92e6: 25.0, 915.0e6: 18.0, 10525e6: 20.0})

@@ -8,7 +8,9 @@ def test_known_geohash():
     assert grid.encode(57.64911, 10.40744, 11) == "u4pruydqqvj"
 
 
-@pytest.mark.parametrize("lat,lon", [(0.0, 0.0), (51.5007, -0.1246), (-33.8568, 151.2153), (89.9, 179.9)])
+@pytest.mark.parametrize(
+    "lat,lon", [(0.0, 0.0), (51.5007, -0.1246), (-33.8568, 151.2153), (89.9, 179.9)]
+)
 def test_roundtrip_within_cell(lat, lon):
     cell = grid.encode(lat, lon, 8)
     lat_lo, lon_lo, lat_hi, lon_hi = grid.bounds(cell)
@@ -47,7 +49,9 @@ def test_nmea_gga_and_rmc():
 
 
 def test_nmea_rejects_bad_checksum():
-    assert gnss.parse_nmea("$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*00") is None
+    assert (
+        gnss.parse_nmea("$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*00") is None
+    )
 
 
 def test_haversine():

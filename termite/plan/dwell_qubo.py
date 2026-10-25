@@ -22,8 +22,13 @@ from termite.plan.allocator import Band
 Var = tuple[int, int]  # (band index, units)
 
 
-def build_qubo(bands: Sequence[Band], units: int, max_units: int | None = None,
-               one_hot: float | None = None, budget: float | None = None) -> dict[tuple[Var, Var], float]:
+def build_qubo(
+    bands: Sequence[Band],
+    units: int,
+    max_units: int | None = None,
+    one_hot: float | None = None,
+    budget: float | None = None,
+) -> dict[tuple[Var, Var], float]:
     max_units = max_units or units
     top = max(b.priority for b in bands) * math.log1p(max_units)
     a = one_hot if one_hot is not None else 4.0 * top  # one choice per band

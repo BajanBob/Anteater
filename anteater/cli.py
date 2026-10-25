@@ -42,13 +42,19 @@ _add_termite()
 
 log = logging.getLogger("anteater")
 
-ConfigOpt = typer.Option(None, "--config", "-c", help="Path to anteater.toml.", envvar="ANTEATER_CONFIG")
+ConfigOpt = typer.Option(
+    None, "--config", "-c", help="Path to anteater.toml.", envvar="ANTEATER_CONFIG"
+)
 
 
 def _settings(config: Path | None, **overrides: dict[str, Any]) -> Settings:
     try:
-        s = load_settings(config, overrides={k: {kk: vv for kk, vv in v.items() if vv is not None}
-                                              for k, v in overrides.items()})
+        s = load_settings(
+            config,
+            overrides={
+                k: {kk: vv for kk, vv in v.items() if vv is not None} for k, v in overrides.items()
+            },
+        )
     except Exception as exc:
         typer.secho(f"config error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(2) from None
@@ -68,10 +74,8 @@ def _run(coro: Any) -> None:
         with contextlib.suppress(asyncio.CancelledError):
             await task
 
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(main())
-    except KeyboardInterrupt:
-        pass
 
 
 def _router(settings: Settings, repo: Any = None, quiet: bool = False) -> Any:
@@ -123,8 +127,15 @@ def selftest(
     report = st.run(settings, radio=not no_radio)
     width = max(len(c.name) for c in report.checks)
     for c in report.checks:
-        mark = typer.style(" ok ", fg=typer.colors.GREEN) if c.ok else (
-            typer.style("warn", fg=typer.colors.YELLOW) if c.optional else typer.style("FAIL", fg=typer.colors.RED))
+        mark = (
+            typer.style(" ok ", fg=typer.colors.GREEN)
+            if c.ok
+            else (
+                typer.style("warn", fg=typer.colors.YELLOW)
+                if c.optional
+                else typer.style("FAIL", fg=typer.colors.RED)
+            )
+        )
         typer.echo(f"[{mark}] {c.name.ljust(width)}  {c.detail}")
     typer.echo("selftest passed" if report.ok else "selftest FAILED")
     raise typer.Exit(0 if report.ok else 1)
@@ -170,8 +181,13 @@ def fp_list(config: Path | None = ConfigOpt) -> None:
     from anteater.pipeline import build_context
 
     ctx = build_context(_settings(config))
-    table = Table("category", "rule", "severity", "file", title=f"{len(ctx.fingerprints.rules)} rules, "
-                  f"{len(ctx.oui):,} OUI entries")
+    table = Table(
+        "category",
+        "rule",
+        "severity",
+        "file",
+        title=f"{len(ctx.fingerprints.rules)} rules, {len(ctx.oui):,} OUI entries",
+    )
     for r in ctx.fingerprints.rules:
         table.add_row(r.category, r.name, r.severity.label, r.source)
     Console().print(table)
@@ -180,15 +196,21 @@ def fp_list(config: Path | None = ConfigOpt) -> None:
 # ------------------------------------------------------------ collect
 @app.command()
 def collect(
-    kismet: str | None = typer.Option(None, "--kismet", help="Kismet URL, e.g. ws://localhost:2501"),
+    kismet: str | None = typer.Option(
+        None, "--kismet", help="Kismet URL, e.g. ws://localhost:2501"
+    ),
     user: str | None = typer.Option(None, "--user"),
     password: str | None = typer.Option(None, "--pass", "--password"),
-    api_key: str | None = typer.Option(None, "--api-key", help="Kismet API key (instead of user/pass)."),
+    api_key: str | None = typer.Option(
+        None, "--api-key", help="Kismet API key (instead of user/pass)."
+    ),
     detect: bool = typer.Option(False, "--detect", help="Also run every engine in this process."),
     config: Path | None = ConfigOpt,
 ) -> None:
     """Ingest Kismet + GPS into the database."""
-    settings = _settings(config, kismet={"url": kismet, "user": user, "password": password, "api_key": api_key})
+    settings = _settings(
+        config, kismet={"url": kismet, "user": user, "password": password, "api_key": api_key}
+    )
 
     async def main() -> None:
         from anteater.collectors.gps import make_gps
@@ -237,8 +259,12 @@ def collect(
 # ------------------------------------------------------------- detect
 @app.command()
 def detect(
-    engines: str = typer.Option("all", "--engines", "-e", help="Comma list, 'all', or '-name' to exclude."),
-    replay: Path | None = typer.Option(None, "--replay", help="Run over a JSON Lines file instead of the DB."),
+    engines: str = typer.Option(
+        "all", "--engines", "-e", help="Comma list, 'all', or '-name' to exclude."
+    ),
+    replay: Path | None = typer.Option(
+        None, "--replay", help="Run over a JSON Lines file instead of the DB."
+    ),
     no_db: bool = typer.Option(False, "--no-db", help="Don't read or write the database."),
     config: Path | None = ConfigOpt,
 ) -> None:
@@ -252,7 +278,11 @@ def detect(
         typer.secho(str(exc), fg=typer.colors.RED, err=True)
         raise typer.Exit(2) from None
     if no_db and replay is None:
-        typer.secho("live detection reads the database; use --replay FILE with --no-db", fg=typer.colors.RED, err=True)
+        typer.secho(
+            "live detection reads the database; use --replay FILE with --no-db",
+            fg=typer.colors.RED,
+            err=True,
+        )
         raise typer.Exit(2)
 
     async def main() -> None:
@@ -271,7 +301,11 @@ def detect(
             if replay is not None:
                 for obs in read_jsonl(replay):
                     await pipeline.process(obs)
-                log.info("replayed %d observations, %d findings", pipeline.observations, pipeline.findings)
+                log.info(
+                    "replayed %d observations, %d findings",
+                    pipeline.observations,
+                    pipeline.findings,
+                )
                 return
             assert repo is not None
             cursor = (time.time() - 60, 0)
@@ -294,7 +328,9 @@ def detect(
 def ui(
     port: int | None = typer.Option(None, "--port", "-p"),
     host: str | None = typer.Option(None, "--host", help="Bind address (default 127.0.0.1)."),
-    detect: bool = typer.Option(False, "--detect", help="Run engines on observations POSTed to the API."),
+    detect: bool = typer.Option(
+        False, "--detect", help="Run engines on observations POSTed to the API."
+    ),
     config: Path | None = ConfigOpt,
 ) -> None:
     """Serve the dashboard and HTTP API."""
@@ -322,10 +358,17 @@ def ui(
 
     asyncio.run(init())
     if settings.api.host not in ("127.0.0.1", "localhost", "::1"):
-        log.warning("dashboard bound to %s: anyone on that network can read your findings", settings.api.host)
+        log.warning(
+            "dashboard bound to %s: anyone on that network can read your findings",
+            settings.api.host,
+        )
     typer.echo(f"dashboard: http://{settings.api.host}:{settings.api.port}")
-    uvicorn.run(create_app(settings, repo, pipeline, bus), host=settings.api.host, port=settings.api.port,
-                log_level=settings.log_level.lower())
+    uvicorn.run(
+        create_app(settings, repo, pipeline, bus),
+        host=settings.api.host,
+        port=settings.api.port,
+        log_level=settings.log_level.lower(),
+    )
 
 
 def main() -> None:

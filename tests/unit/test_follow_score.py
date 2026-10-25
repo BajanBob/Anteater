@@ -9,8 +9,15 @@ def _walk(det, obs, subject, places, minutes_apart=15, session="s1", lat0=51.5, 
     out = []
     for i in range(places):
         lat, lon = lat0 + 0.03 * i, lon0 + 0.03 * i  # ~3-4 km apart
-        o = obs("ble", subject, ts=T0 + i * minutes_apart * 60, lat=lat, lon=lon,
-                cell=encode(lat, lon, 7), session=session)
+        o = obs(
+            "ble",
+            subject,
+            ts=T0 + i * minutes_apart * 60,
+            lat=lat,
+            lon=lon,
+            cell=encode(lat, lon, 7),
+            session=session,
+        )
         out += det.process(o)
     return out
 
@@ -35,8 +42,15 @@ def test_one_place_is_not_following(ctx, obs):
     det = FollowScore(ctx)
     out = []
     for i in range(10):
-        o = obs("ble", "c0:ff:ee:00:00:02", ts=T0 + i * 600, lat=51.5, lon=-0.12,
-                cell=encode(51.5, -0.12, 7), session="s1")
+        o = obs(
+            "ble",
+            "c0:ff:ee:00:00:02",
+            ts=T0 + i * 600,
+            lat=51.5,
+            lon=-0.12,
+            cell=encode(51.5, -0.12, 7),
+            session="s1",
+        )
         out += det.process(o)
     assert out == []
 

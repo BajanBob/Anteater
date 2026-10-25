@@ -13,7 +13,9 @@ import numpy as np
 
 
 class RFFClassifier:
-    def __init__(self, n_features: int = 512, gamma: float = 0.5, alpha: float = 1e-2, seed: int = 0) -> None:
+    def __init__(
+        self, n_features: int = 512, gamma: float = 0.5, alpha: float = 1e-2, seed: int = 0
+    ) -> None:
         self.n_features = n_features
         self.gamma = gamma
         self.alpha = alpha
@@ -26,7 +28,12 @@ class RFFClassifier:
         self.coef_: np.ndarray | None = None
 
     def _map(self, X: np.ndarray) -> np.ndarray:
-        assert self.W is not None and self.b is not None and self.mean_ is not None and self.std_ is not None
+        assert (
+            self.W is not None
+            and self.b is not None
+            and self.mean_ is not None
+            and self.std_ is not None
+        )
         Z = (np.asarray(X, dtype=np.float64) - self.mean_) / self.std_
         return np.sqrt(2.0 / self.n_features) * np.cos(Z @ self.W + self.b)
 
@@ -73,7 +80,13 @@ class RFFClassifier:
         if self.coef_ is None:
             raise RuntimeError("classifier is not fitted")
         np.savez_compressed(
-            path, W=self.W, b=self.b, coef=self.coef_, classes=self.classes_, mean=self.mean_, std=self.std_,
+            path,
+            W=self.W,
+            b=self.b,
+            coef=self.coef_,
+            classes=self.classes_,
+            mean=self.mean_,
+            std=self.std_,
             params=np.array([self.n_features, self.gamma, self.alpha, self.seed], dtype=np.float64),
         )
 

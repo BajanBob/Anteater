@@ -14,8 +14,16 @@ def test_parse():
         Severity.parse("loud")
 
 
-@pytest.mark.parametrize("score,level", [(0.0, Severity.INFO), (0.2, Severity.LOW), (0.5, Severity.MEDIUM),
-                                         (0.7, Severity.HIGH), (0.95, Severity.CRITICAL)])
+@pytest.mark.parametrize(
+    "score,level",
+    [
+        (0.0, Severity.INFO),
+        (0.2, Severity.LOW),
+        (0.5, Severity.MEDIUM),
+        (0.7, Severity.HIGH),
+        (0.95, Severity.CRITICAL),
+    ],
+)
 def test_from_score(score, level):
     assert Severity.from_score(score) is level
 
@@ -41,12 +49,12 @@ async def test_router_filters_and_dedupes():
     def f(sev, ts, title="t"):
         return Finding("e", sev, title, "aa:bb", ts=ts)
 
-    assert not await router.route(f(Severity.INFO, 0))       # below threshold
+    assert not await router.route(f(Severity.INFO, 0))  # below threshold
     assert await router.route(f(Severity.LOW, 0))
-    assert not await router.route(f(Severity.LOW, 10))       # duplicate
-    assert await router.route(f(Severity.HIGH, 20))          # escalation goes through
-    assert await router.route(f(Severity.LOW, 200))          # window expired
-    assert await router.route(f(Severity.LOW, 201, "other")) # different finding
+    assert not await router.route(f(Severity.LOW, 10))  # duplicate
+    assert await router.route(f(Severity.HIGH, 20))  # escalation goes through
+    assert await router.route(f(Severity.LOW, 200))  # window expired
+    assert await router.route(f(Severity.LOW, 201, "other"))  # different finding
     assert len(sink.findings) == 4
 
 

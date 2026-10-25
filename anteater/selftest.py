@@ -15,6 +15,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from anteater.alerts.router import AlertRouter
 from anteater.alerts.sinks import MemorySink
@@ -65,36 +66,82 @@ def scenario(t0: float | None = None) -> list[Observation]:
     lat0, lon0 = 51.5007, -0.1246
     obs: list[Observation] = []
 
-    def at(minutes: float, step: int = 0) -> dict[str, float]:
+    def at(minutes: float, step: int = 0) -> dict[str, Any]:
         return {"ts": t0 + minutes * 60, "lat": lat0 + 0.03 * step, "lon": lon0 + 0.03 * step}
 
     # ssid_anomaly: established SSID gains a new BSSID; plus a malformed SSID
-    obs.append(Observation(WIFI_AP, "00:11:22:00:00:01", ssid="CoffeeShop", crypt="WPA2", hidden=False, **at(0)))
-    obs.append(Observation(WIFI_AP, "00:11:22:00:00:02", ssid="CoffeeShop", crypt="WPA2", hidden=False, **at(10)))
+    obs.append(
+        Observation(
+            WIFI_AP, "00:11:22:00:00:01", ssid="CoffeeShop", crypt="WPA2", hidden=False, **at(0)
+        )
+    )
+    obs.append(
+        Observation(
+            WIFI_AP, "00:11:22:00:00:02", ssid="CoffeeShop", crypt="WPA2", hidden=False, **at(10)
+        )
+    )
     obs.append(Observation(WIFI_AP, "00:11:22:00:00:03", ssid="bad\x01ssid", crypt="WPA2", **at(1)))
     # evil_twin: open AP copying a WPA2 network
-    for i, (mac, crypt) in enumerate([("00:aa:00:00:00:01", "WPA2-PSK"), ("00:aa:00:00:00:02", "WPA2-PSK"),
-                                      ("02:aa:00:00:00:03", "Open")]):
+    for i, (mac, crypt) in enumerate(
+        [
+            ("00:aa:00:00:00:01", "WPA2-PSK"),
+            ("00:aa:00:00:00:02", "WPA2-PSK"),
+            ("02:aa:00:00:00:03", "Open"),
+        ]
+    ):
         obs.append(Observation(WIFI_AP, mac, ssid="HomeNet", crypt=crypt, **at(2 + i)))
     # karma_beacon
-    obs.append(Observation(WIFI_AP, "02:bb:00:00:00:01", ssid="FreeWiFi", crypt="Open",
-                           extra={"responded_ssids": ["HomeNet", "eduroam", "Airport_Free", "Starbucks"]}, **at(5)))
+    obs.append(
+        Observation(
+            WIFI_AP,
+            "02:bb:00:00:00:01",
+            ssid="FreeWiFi",
+            crypt="Open",
+            extra={"responded_ssids": ["HomeNet", "eduroam", "Airport_Free", "Starbucks"]},
+            **at(5),
+        )
+    )
     # fingerprints: AirTag-style Find My advertisement (company 0x004C, type 0x12)
-    obs.append(Observation(BLE, "c1:00:00:00:00:01", extra={"manufacturer_data": ["4c00121900aabbccdd"]}, **at(6)))
+    obs.append(
+        Observation(
+            BLE, "c1:00:00:00:00:01", extra={"manufacturer_data": ["4c00121900aabbccdd"]}, **at(6)
+        )
+    )
     # follow_score + grid_square: one tracker across five places over 80 minutes
     for step in range(5):
-        obs.append(Observation(BLE, "c2:11:22:33:44:55", rssi=-60,
-                               extra={"manufacturer_data": ["4c0012190011"]}, **at(20 * step, step)))
+        obs.append(
+            Observation(
+                BLE,
+                "c2:11:22:33:44:55",
+                rssi=-60,
+                extra={"manufacturer_data": ["4c0012190011"]},
+                **at(20 * step, step),
+            )
+        )
     # imsi_catcher: LTE then forced to 2G with A5/1
-    obs.append(Observation(CELL, "234-15-100-2001", extra={"rat": "LTE", "mcc": 234, "mnc": 15}, **at(30)))
-    obs.append(Observation(CELL, "234-15-999-9999", extra={"rat": "GSM", "cipher": "A5/1", "arfcn": 30,
-                                                            "neighbours": 0}, **at(30.5)))
+    obs.append(
+        Observation(CELL, "234-15-100-2001", extra={"rat": "LTE", "mcc": 234, "mnc": 15}, **at(30))
+    )
+    obs.append(
+        Observation(
+            CELL,
+            "234-15-999-9999",
+            extra={"rat": "GSM", "cipher": "A5/1", "arfcn": 30, "neighbours": 0},
+            **at(30.5),
+        )
+    )
     # cell_ping_anomaly: a burst of pages
     for i in range(6):
         obs.append(Observation(CELL, "234-15-999-9999", extra={"event": "paging"}, **at(31 + i)))
     # drones: Remote ID basic ID over BLE
-    obs.append(Observation(BLE, "d0:00:00:00:00:01", extra={"service_data": {"fffa": _remote_id_ble("SELFTEST-UAS-1")}},
-                           **at(40)))
+    obs.append(
+        Observation(
+            BLE,
+            "d0:00:00:00:00:01",
+            extra={"service_data": {"fffa": _remote_id_ble("SELFTEST-UAS-1")}},
+            **at(40),
+        )
+    )
     # radar: X band carrier from termite
     obs.append(Observation(SDR, "sdr:10525.0", freq_mhz=10525.0, extra={"snr_db": 22.0}, **at(41)))
     return sorted(obs, key=lambda o: o.ts)
@@ -144,17 +191,25 @@ def run(settings: Settings, radio: bool = False) -> Report:
             ctx = build_context(test_settings, Baseline())
             n = len(ctx.fingerprints.rules)
             assert n > 0, "no fingerprint rules loaded (config/vendors missing?)"
-            return f"{n} rules, {len(ctx.oui)} OUI entries" + ("" if len(ctx.oui) else " (run `anteater fp sync`)")
+            return f"{n} rules, {len(ctx.oui)} OUI entries" + (
+                "" if len(ctx.oui) else " (run `anteater fp sync`)"
+            )
 
         _try(report, "fingerprints", fingerprints)
 
         findings = asyncio.run(run_scenario(test_settings))
         fired = {f.engine for f in findings}
         for name in registry.ENGINES:
-            report.add(f"engine {name}", name in fired,
-                       f"{sum(f.engine == name for f in findings)} finding(s)" if name in fired else "did not fire")
+            report.add(
+                f"engine {name}",
+                name in fired,
+                f"{sum(f.engine == name for f in findings)} finding(s)"
+                if name in fired
+                else "did not fire",
+            )
 
         if importlib.util.find_spec("cv2"):
+
             def video() -> str:
                 from anteater.alerts.video import render_hud
 
@@ -166,6 +221,7 @@ def run(settings: Settings, radio: bool = False) -> Report:
 
         have_db = all(importlib.util.find_spec(m) for m in ("sqlalchemy", "aiosqlite"))
         if have_db:
+
             def database() -> str:
                 from anteater.db.repository import Repository
                 from anteater.db.session import create_all
@@ -190,6 +246,7 @@ def run(settings: Settings, radio: bool = False) -> Report:
             report.add("database", False, "sqlalchemy/aiosqlite not installed")
 
     if radio:
+
         def kismet() -> str:
             from anteater.collectors.kismet_eventbus import KismetCollector
 

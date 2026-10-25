@@ -66,7 +66,13 @@ def load_bands(region: int, path: Path | None = None) -> list[Band]:
     file = path or data_dir("spectrum") / f"itu_r{region}.yaml"
     doc = yaml.safe_load(Path(file).read_text(encoding="utf-8")) or {}
     return [
-        Band(str(b["name"]), float(b["lo_mhz"]), float(b["hi_mhz"]), float(b.get("priority", 1.0)), str(b.get("why", "")))
+        Band(
+            str(b["name"]),
+            float(b["lo_mhz"]),
+            float(b["hi_mhz"]),
+            float(b.get("priority", 1.0)),
+            str(b.get("why", "")),
+        )
         for b in doc.get("bands", [])
     ]
 
@@ -84,7 +90,9 @@ def allocate(
     candidates: list[tuple[Band, list[float]]] = []
     for b in bands:
         centres = b.steps(sample_rate)
-        tuned = [c - downconverter_lo_hz if downconverter_lo_hz and c > hi_lim else c for c in centres]
+        tuned = [
+            c - downconverter_lo_hz if downconverter_lo_hz and c > hi_lim else c for c in centres
+        ]
         if any(not lo_lim <= t <= hi_lim for t in tuned):
             plan.skipped.append((b, "outside the receiver's range (needs a downconverter)"))
             continue
@@ -100,7 +108,9 @@ def allocate(
             chosen.append((b, centres))
             remaining -= need
         else:
-            plan.skipped.append((b, f"needs {need:.1f} s minimum, only {remaining:.1f} s left in budget"))
+            plan.skipped.append(
+                (b, f"needs {need:.1f} s minimum, only {remaining:.1f} s left in budget")
+            )
 
     # share the rest by priority weight, per step
     weight = sum(b.priority * len(c) for b, c in chosen) or 1.0

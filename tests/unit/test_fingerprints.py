@@ -39,14 +39,16 @@ def test_randomised_mac():
 
 
 def test_rule_modes(obs):
-    rules = parse_rules({
-        "category": "test",
-        "rules": [
-            {"name": "any", "match": {"vendor": ["(?i)acme"], "ssid": ["^cam"]}},
-            {"name": "all", "mode": "all", "match": {"vendor": ["(?i)acme"], "ssid": ["^cam"]}},
-            {"name": "ble only", "match": {"ssid": ["^cam"], "kinds": ["ble"]}},
-        ],
-    })
+    rules = parse_rules(
+        {
+            "category": "test",
+            "rules": [
+                {"name": "any", "match": {"vendor": ["(?i)acme"], "ssid": ["^cam"]}},
+                {"name": "all", "mode": "all", "match": {"vendor": ["(?i)acme"], "ssid": ["^cam"]}},
+                {"name": "ble only", "match": {"ssid": ["^cam"], "kinds": ["ble"]}},
+            ],
+        }
+    )
     o = obs("wifi_ap", "00:00:00:00:00:01", ssid="cam-1", vendor="Other Ltd")
     hits = {r.name for r in rules if r.matches(o)}
     assert hits == {"any"}
@@ -54,7 +56,9 @@ def test_rule_modes(obs):
 
 def test_airtag_is_recognised(ctx, obs):
     engine = FingerprintEngine(ctx)
-    found = engine.process(obs("ble", "c1:00:00:00:00:01", extra={"manufacturer_data": ["4c0012190011"]}))
+    found = engine.process(
+        obs("ble", "c1:00:00:00:00:01", extra={"manufacturer_data": ["4c0012190011"]})
+    )
     assert any("Find My" in f.title for f in found)
 
 
@@ -63,8 +67,10 @@ def test_camera_setup_ssid_heuristic(ctx, obs):
     assert any(f.evidence["category"] == "camera" for f in found)
 
 
-@pytest.mark.parametrize("crypt,rank", [("WPA3 SAE", 4), ("WPA2-PSK CCMP", 3), ("WPA TKIP", 2), ("WEP", 1),
-                                        ("Open", 0), (None, 0)])
+@pytest.mark.parametrize(
+    "crypt,rank",
+    [("WPA3 SAE", 4), ("WPA2-PSK CCMP", 3), ("WPA TKIP", 2), ("WEP", 1), ("Open", 0), (None, 0)],
+)
 def test_crypt_rank(crypt, rank):
     assert crypt_rank(crypt) == rank
 
@@ -78,8 +84,9 @@ def test_evil_twin_downgrade(ctx, obs):
 
 def test_karma(ctx, obs):
     det = KarmaBeacon(ctx)
-    out = det.process(obs("wifi_ap", "02:bb:00:00:00:01", ssid="Free",
-                          extra={"responded_ssids": ["a", "b", "c"]}))
+    out = det.process(
+        obs("wifi_ap", "02:bb:00:00:00:01", ssid="Free", extra={"responded_ssids": ["a", "b", "c"]})
+    )
     assert out and "KARMA" in out[0].title
 
 

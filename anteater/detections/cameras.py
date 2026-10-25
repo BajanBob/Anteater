@@ -27,7 +27,11 @@ def camera_heuristics(obs: Observation) -> list[tuple[str, str, Severity, str]]:
         return []
     if _SETUP_SSID.match(obs.ssid):
         return [
-            ("camera", "camera set-up / direct SSID", Severity.LOW,
-             "SSID matches a consumer camera brand's set-up or direct-connect pattern")
+            (
+                "camera",
+                "camera set-up / direct SSID",
+                Severity.LOW,
+                "SSID matches a consumer camera brand's set-up or direct-connect pattern",
+            )
         ]
     return []

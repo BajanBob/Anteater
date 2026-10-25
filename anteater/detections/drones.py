@@ -12,7 +12,7 @@ from __future__ import annotations
 import struct
 from typing import Any
 
-from anteater.detections.base import Context, BLE, WIFI_AP, Detector, Finding, Observation
+from anteater.detections.base import BLE, WIFI_AP, Context, Detector, Finding, Observation
 from anteater.geo.gnss import haversine_m
 from anteater.scoring.severity import Severity
 
@@ -29,7 +29,11 @@ def decode_message(msg: bytes) -> dict[str, Any]:
     if mtype == 0:  # Basic ID
         id_type = msg[1] >> 4
         uas_id = msg[2:22].split(b"\x00")[0].decode("ascii", "replace").strip()
-        return {"type": "basic_id", "id_type": ID_TYPES.get(id_type, str(id_type)), "uas_id": uas_id}
+        return {
+            "type": "basic_id",
+            "id_type": ID_TYPES.get(id_type, str(id_type)),
+            "uas_id": uas_id,
+        }
     if mtype == 1:  # Location
         lat_i, lon_i = struct.unpack_from("<ii", msg, 5)
         alt_raw = struct.unpack_from("<H", msg, 15)[0]  # geodetic altitude
@@ -79,7 +83,10 @@ class Drones(Detector):
         for ie in obs.extra.get("vendor_ies") or []:
             if not isinstance(ie, dict):
                 continue
-            if str(ie.get("oui", "")).lower().replace(":", "") == ODID_OUI and int(ie.get("type", 0x0D)) == 0x0D:
+            if (
+                str(ie.get("oui", "")).lower().replace(":", "") == ODID_OUI
+                and int(ie.get("type", 0x0D)) == 0x0D
+            ):
                 out.append((bytes.fromhex(str(ie.get("data", ""))), False))
         return out
 
@@ -101,7 +108,12 @@ class Drones(Detector):
             info["distance_m"] = round(haversine_m(obs.lat, obs.lon, info["lat"], info["lon"]))
         near = info.get("distance_m", 9e9) < 300
         return [
-            self.finding(obs, Severity.HIGH if near else Severity.MEDIUM,
-                         "drone broadcasting Remote ID", 0.7 if near else 0.5,
-                         transport="ble" if obs.kind == BLE else "wifi", **info)
+            self.finding(
+                obs,
+                Severity.HIGH if near else Severity.MEDIUM,
+                "drone broadcasting Remote ID",
+                0.7 if near else 0.5,
+                transport="ble" if obs.kind == BLE else "wifi",
+                **info,
+            )
         ]

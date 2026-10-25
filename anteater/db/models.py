@@ -42,7 +42,9 @@ class Base(DeclarativeBase):
 class ObservationRow(Base):
     __tablename__ = "observations"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, default=new_id, autoincrement=False)
+    id: Mapped[int] = mapped_column(
+        BigInteger, primary_key=True, default=new_id, autoincrement=False
+    )
     ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
     kind: Mapped[str] = mapped_column(String(16))
     subject: Mapped[str] = mapped_column(String(64))

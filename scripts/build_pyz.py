@@ -20,12 +20,12 @@ import zipapp
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-MAIN = '''import sys
+MAIN = """import sys
 from anteater.cli import main
 if __name__ == "__main__":
     sys.argv[0] = "anteater"
     main()
-'''
+"""
 
 
 def main() -> int:

@@ -45,7 +45,16 @@ def render_hud(f: Finding, frame_no: int = 0, cv2: Any = None) -> np.ndarray:
     cv2.rectangle(img, (0, 0), (W - 1, H - 1), colour, pulse)
     # header band
     cv2.rectangle(img, (0, 0), (W, 140), colour, -1)
-    cv2.putText(img, f"{f.severity.label.upper()}  |  {f.engine}", (60, 95), font, 2.0, (10, 10, 10), 4, cv2.LINE_AA)
+    cv2.putText(
+        img,
+        f"{f.severity.label.upper()}  |  {f.engine}",
+        (60, 95),
+        font,
+        2.0,
+        (10, 10, 10),
+        4,
+        cv2.LINE_AA,
+    )
 
     title = f.title if len(f.title) <= 60 else f.title[:57] + "..."
     cv2.putText(img, title, (60, 260), font, 1.8, (245, 245, 245), 3, cv2.LINE_AA)
@@ -53,7 +62,16 @@ def render_hud(f: Finding, frame_no: int = 0, cv2: Any = None) -> np.ndarray:
 
     stamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(f.ts))
     where = f"{f.lat:.5f}, {f.lon:.5f}" if f.lat is not None and f.lon is not None else "no GPS fix"
-    cv2.putText(img, f"{stamp}   {where}   cell {f.cell or '-'}", (60, 430), font, 1.0, (180, 180, 180), 2, cv2.LINE_AA)
+    cv2.putText(
+        img,
+        f"{stamp}   {where}   cell {f.cell or '-'}",
+        (60, 430),
+        font,
+        1.0,
+        (180, 180, 180),
+        2,
+        cv2.LINE_AA,
+    )
 
     y = 520
     for k, v in list(f.evidence.items())[:9]:
@@ -65,16 +83,25 @@ def render_hud(f: Finding, frame_no: int = 0, cv2: Any = None) -> np.ndarray:
 
     # confidence bar
     cv2.rectangle(img, (60, H - 90), (W - 60, H - 60), (70, 70, 70), 2)
-    cv2.rectangle(img, (62, H - 88), (62 + int((W - 124) * max(0.0, min(1.0, f.score))), H - 62), colour, -1)
-    cv2.putText(img, f"confidence {f.score:.0%}", (60, H - 105), font, 0.9, (200, 200, 200), 2, cv2.LINE_AA)
+    cv2.rectangle(
+        img, (62, H - 88), (62 + int((W - 124) * max(0.0, min(1.0, f.score))), H - 62), colour, -1
+    )
+    cv2.putText(
+        img, f"confidence {f.score:.0%}", (60, H - 105), font, 0.9, (200, 200, 200), 2, cv2.LINE_AA
+    )
     return img
 
 
 class VideoSink:
     name = "video"
 
-    def __init__(self, clips_dir: Path, seconds: float = 3.0, fps: int = 10,
-                 min_severity: Severity = Severity.MEDIUM) -> None:
+    def __init__(
+        self,
+        clips_dir: Path,
+        seconds: float = 3.0,
+        fps: int = 10,
+        min_severity: Severity = Severity.MEDIUM,
+    ) -> None:
         import cv2
 
         self.cv2 = cv2
@@ -90,7 +117,9 @@ class VideoSink:
             return
         name = time.strftime("%Y%m%d-%H%M%S", time.localtime(f.ts)) + f"_{f.engine}_{f.id[:6]}.mp4"
         path = self.dir / name
-        writer = self.cv2.VideoWriter(str(path), self.cv2.VideoWriter_fourcc(*"mp4v"), self.fps, (W, H))
+        writer = self.cv2.VideoWriter(
+            str(path), self.cv2.VideoWriter_fourcc(*"mp4v"), self.fps, (W, H)
+        )
         if not writer.isOpened():
             log.warning("cannot open video writer for %s", path)
             return

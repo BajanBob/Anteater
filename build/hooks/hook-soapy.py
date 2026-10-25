@@ -22,7 +22,12 @@ try:
     import SoapySDR  # noqa: F401
 
     root = SoapySDR.getRootPath()
-    for lib_dir in ("lib", "lib64", os.path.join("lib", "x86_64-linux-gnu"), os.path.join("lib", "aarch64-linux-gnu")):
+    for lib_dir in (
+        "lib",
+        "lib64",
+        os.path.join("lib", "x86_64-linux-gnu"),
+        os.path.join("lib", "aarch64-linux-gnu"),
+    ):
         for module in glob.glob(os.path.join(root, lib_dir, "SoapySDR", "modules*", "*")):
             if module.endswith((".so", ".dylib", ".dll")):
                 binaries.append((module, "SoapySDR/modules"))

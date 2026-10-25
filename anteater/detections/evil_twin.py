@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
-from anteater.detections.base import Context, WIFI_AP, Detector, Finding, Observation, is_randomised_mac
+from anteater.detections.base import (
+    WIFI_AP,
+    Context,
+    Detector,
+    Finding,
+    Observation,
+    is_randomised_mac,
+)
 from anteater.scoring.severity import Severity
 
 CRYPT_NAMES = ["open", "WEP", "WPA", "WPA2", "WPA3"]
@@ -52,8 +59,13 @@ class EvilTwin(Detector):
             sev = Severity.HIGH if rank == 0 else Severity.MEDIUM
             out.append(
                 self.finding(
-                    obs, sev, "evil twin: security downgrade", 0.75 if rank == 0 else 0.55,
-                    ssid=ssid, this_security=CRYPT_NAMES[rank], usual_security=CRYPT_NAMES[best],
+                    obs,
+                    sev,
+                    "evil twin: security downgrade",
+                    0.75 if rank == 0 else 0.55,
+                    ssid=ssid,
+                    this_security=CRYPT_NAMES[rank],
+                    usual_security=CRYPT_NAMES[best],
                     other_bssids=sorted(others),
                 )
             )
@@ -70,8 +82,13 @@ class EvilTwin(Detector):
             self.reported.add((ssid, bssid))
             out.append(
                 self.finding(
-                    obs, Severity.MEDIUM, "evil twin: vendor mismatch", 0.5,
-                    ssid=ssid, this_vendor=vendor, usual_vendor=next(iter(known_vendors)),
+                    obs,
+                    Severity.MEDIUM,
+                    "evil twin: vendor mismatch",
+                    0.5,
+                    ssid=ssid,
+                    this_vendor=vendor,
+                    usual_vendor=next(iter(known_vendors)),
                 )
             )
         return out

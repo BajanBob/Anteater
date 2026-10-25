@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from anteater.detections.base import Context, WIFI_AP, Detector, Finding, Observation
+from anteater.detections.base import WIFI_AP, Context, Detector, Finding, Observation
 from anteater.scoring.severity import Severity
 
 MAX_SSID_BYTES = 32
@@ -25,7 +25,9 @@ def ssid_problems(ssid: str) -> list[str]:
 
 class SsidAnomaly(Detector):
     name = "ssid_anomaly"
-    description = "duplicate SSIDs on new BSSIDs, non-printable/overlong SSIDs, hidden<->broadcast flips"
+    description = (
+        "duplicate SSIDs on new BSSIDs, non-printable/overlong SSIDs, hidden<->broadcast flips"
+    )
     kinds = (WIFI_AP,)
 
     def __init__(self, ctx: Context) -> None:
@@ -44,8 +46,14 @@ class SsidAnomaly(Detector):
             if prev is not None and prev != obs.hidden:
                 direction = "hidden -> broadcast" if prev else "broadcast -> hidden"
                 out.append(
-                    self.finding(obs, Severity.LOW, f"SSID visibility flip ({direction})", 0.3,
-                                 ssid=obs.ssid, previous_hidden=prev)
+                    self.finding(
+                        obs,
+                        Severity.LOW,
+                        f"SSID visibility flip ({direction})",
+                        0.3,
+                        ssid=obs.ssid,
+                        previous_hidden=prev,
+                    )
                 )
             self.hidden_state[bssid] = obs.hidden
 
@@ -57,8 +65,9 @@ class SsidAnomaly(Detector):
         if problems and bssid not in self.reported_malformed:
             self.reported_malformed.add(bssid)
             out.append(
-                self.finding(obs, Severity.MEDIUM, "malformed SSID", 0.5,
-                             ssid=repr(ssid), problems=problems)
+                self.finding(
+                    obs, Severity.MEDIUM, "malformed SSID", 0.5, ssid=repr(ssid), problems=problems
+                )
             )
 
         warmup = self.ctx.settings.detect.ssid_warmup_seconds
@@ -68,9 +77,15 @@ class SsidAnomaly(Detector):
             established = obs.ts - first >= warmup and len(known) >= 1
             if established and len(known) < ENTERPRISE_BSSIDS:
                 out.append(
-                    self.finding(obs, Severity.MEDIUM, "new BSSID for an established SSID", 0.5,
-                                 ssid=ssid, known_bssids=sorted(known),
-                                 ssid_age_s=round(obs.ts - first))
+                    self.finding(
+                        obs,
+                        Severity.MEDIUM,
+                        "new BSSID for an established SSID",
+                        0.5,
+                        ssid=ssid,
+                        known_bssids=sorted(known),
+                        ssid_age_s=round(obs.ts - first),
+                    )
                 )
             known.add(bssid)
         return out

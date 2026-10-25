@@ -27,7 +27,12 @@ def merge(csv_texts: dict[str, str]) -> list[list[str]]:
             org = (row.get("Organization Name") or "").strip()
             if not assignment or not org:
                 continue
-            rows[assignment] = [registry, assignment, org, (row.get("Organization Address") or "").strip()]
+            rows[assignment] = [
+                registry,
+                assignment,
+                org,
+                (row.get("Organization Address") or "").strip(),
+            ]
     return [rows[k] for k in sorted(rows)]
 
 
@@ -46,7 +51,9 @@ def sync(dest: Path, timeout: float = 60.0) -> int:
     import httpx
 
     texts: dict[str, str] = {}
-    with httpx.Client(timeout=timeout, headers={"User-Agent": USER_AGENT}, follow_redirects=True) as client:
+    with httpx.Client(
+        timeout=timeout, headers={"User-Agent": USER_AGENT}, follow_redirects=True
+    ) as client:
         for registry, url in SOURCES.items():
             log.info("fetching %s", url)
             r = client.get(url)

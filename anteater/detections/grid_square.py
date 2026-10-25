@@ -8,7 +8,16 @@ already raised findings turning up in a new cell is a repeat offence.
 
 from __future__ import annotations
 
-from anteater.detections.base import Context, BLE, TPMS, WIFI_AP, WIFI_CLIENT, Detector, Finding, Observation
+from anteater.detections.base import (
+    BLE,
+    TPMS,
+    WIFI_AP,
+    WIFI_CLIENT,
+    Context,
+    Detector,
+    Finding,
+    Observation,
+)
 from anteater.scoring.severity import Severity, escalate
 
 
@@ -31,8 +40,14 @@ class GridSquare(Detector):
 
         if new_here and base.is_familiar(cell) and (obs.rssi is None or obs.rssi > -70):
             out.append(
-                self.finding(obs, Severity.INFO, "new device in a familiar place", 0.15,
-                             cell_sessions=len(base.cells[cell].sessions), rssi=obs.rssi)
+                self.finding(
+                    obs,
+                    Severity.INFO,
+                    "new device in a familiar place",
+                    0.15,
+                    cell_sessions=len(base.cells[cell].sessions),
+                    rssi=obs.rssi,
+                )
             )
 
         prior = self.ctx.flagged.get(obs.subject, 0)
@@ -43,8 +58,13 @@ class GridSquare(Detector):
                 if len(cells) > 1:
                     sev = escalate(Severity.MEDIUM, len(cells))
                     out.append(
-                        self.finding(obs, sev, "repeat offender seen in another grid square",
-                                     min(0.95, 0.45 + 0.1 * len(cells)),
-                                     prior_findings=prior, squares=len(cells))
+                        self.finding(
+                            obs,
+                            sev,
+                            "repeat offender seen in another grid square",
+                            min(0.95, 0.45 + 0.1 * len(cells)),
+                            prior_findings=prior,
+                            squares=len(cells),
+                        )
                     )
         return out

@@ -129,7 +129,11 @@ class Rule:
             uuids |= {_short_uuid(u) for u in (extra.get("service_data") or {})}
             out.append(bool(uuids & set(self.ble_service_uuid)))
         if self.vendor_ie:
-            ies = {str(ie.get("oui", "")).lower().replace(":", "") for ie in _as_list(extra.get("vendor_ies")) if isinstance(ie, dict)}
+            ies = {
+                str(ie.get("oui", "")).lower().replace(":", "")
+                for ie in _as_list(extra.get("vendor_ies"))
+                if isinstance(ie, dict)
+            }
             out.append(bool(ies & set(self.vendor_ie)))
         return out
 
@@ -268,9 +272,17 @@ class FingerprintEngine(Detector):
                 seen.add(title)
                 out.append(
                     self.finding(
-                        obs, sev, title, score=0.3 + 0.1 * int(sev),
-                        category=category, rule=name, rule_file="heuristic", note=note,
-                        vendor=obs.vendor, ssid=obs.ssid, rssi=obs.rssi,
+                        obs,
+                        sev,
+                        title,
+                        score=0.3 + 0.1 * int(sev),
+                        category=category,
+                        rule=name,
+                        rule_file="heuristic",
+                        note=note,
+                        vendor=obs.vendor,
+                        ssid=obs.ssid,
+                        rssi=obs.rssi,
                     )
                 )
         return out

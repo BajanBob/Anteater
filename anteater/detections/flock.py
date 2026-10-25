@@ -16,7 +16,9 @@ from anteater.detections.fingerprints import register_heuristic
 from anteater.scoring.severity import Severity
 
 _FLOCK_NAME = re.compile(r"(?i)\bflock\b")
-_MODEM_VENDORS = re.compile(r"(?i)(sierra wireless|cradlepoint|quectel|telit|inseego|digi international)")
+_MODEM_VENDORS = re.compile(
+    r"(?i)(sierra wireless|cradlepoint|quectel|telit|inseego|digi international)"
+)
 
 
 @register_heuristic
@@ -27,12 +29,20 @@ def flock_heuristics(obs: Observation) -> list[tuple[str, str, Severity, str]]:
     label = obs.ssid or str(obs.extra.get("name") or "")
     if label and _FLOCK_NAME.search(label) and is_randomised_mac(obs.subject):
         out.append(
-            ("alpr", "Flock-named device with randomised MAC", Severity.MEDIUM,
-             "name mentions Flock but the MAC is randomised, so the vendor can't be confirmed")
+            (
+                "alpr",
+                "Flock-named device with randomised MAC",
+                Severity.MEDIUM,
+                "name mentions Flock but the MAC is randomised, so the vendor can't be confirmed",
+            )
         )
     if obs.kind == WIFI_AP and obs.vendor and _MODEM_VENDORS.search(obs.vendor) and obs.hidden:
         out.append(
-            ("alpr", "hidden AP on a cellular modem (possible ALPR backhaul)", Severity.LOW,
-             "hidden SSID from an LTE modem vendor; common on camera trailers, also on buses and kiosks")
+            (
+                "alpr",
+                "hidden AP on a cellular modem (possible ALPR backhaul)",
+                Severity.LOW,
+                "hidden SSID from an LTE modem vendor; common on camera trailers, also on buses and kiosks",
+            )
         )
     return out

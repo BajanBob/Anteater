@@ -53,7 +53,9 @@ class Carrier:
     bandwidth_hz: float
 
 
-def find_carriers(freqs: np.ndarray, power: np.ndarray, min_snr_db: float = 10.0, max_carriers: int = 8) -> list[Carrier]:
+def find_carriers(
+    freqs: np.ndarray, power: np.ndarray, min_snr_db: float = 10.0, max_carriers: int = 8
+) -> list[Carrier]:
     """Contiguous runs above floor + min_snr, strongest first, with -3 dB-ish width."""
     floor = noise_floor_db(power)
     above = power > floor + min_snr_db
@@ -68,7 +70,9 @@ def find_carriers(freqs: np.ndarray, power: np.ndarray, min_snr_db: float = 10.0
         while j < n and above[j]:
             j += 1
         k = i + int(np.argmax(power[i:j]))
-        out.append(Carrier(float(freqs[k]), float(power[k]), float(power[k] - floor), (j - i) * bin_hz))
+        out.append(
+            Carrier(float(freqs[k]), float(power[k]), float(power[k] - floor), (j - i) * bin_hz)
+        )
         i = j
     out.sort(key=lambda c: c.snr_db, reverse=True)
     return out[:max_carriers]
@@ -81,8 +85,16 @@ def spectral_flatness(power_db: np.ndarray) -> float:
 
 
 FEATURE_NAMES = (
-    "snr_db", "bandwidth_khz", "flatness", "crest_db", "kurtosis",
-    "papr_db", "amp_std", "phase_diff_std", "n_carriers", "occupancy",
+    "snr_db",
+    "bandwidth_khz",
+    "flatness",
+    "crest_db",
+    "kurtosis",
+    "papr_db",
+    "amp_std",
+    "phase_diff_std",
+    "n_carriers",
+    "occupancy",
 )
 
 

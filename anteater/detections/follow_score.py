@@ -10,11 +10,11 @@ Fixed cell towers and SDR carriers are excluded; everything that can move
 from __future__ import annotations
 
 from anteater.detections.base import (
-    Context,
     BLE,
     TPMS,
     WIFI_AP,
     WIFI_CLIENT,
+    Context,
     Detector,
     Finding,
     Observation,
@@ -23,7 +23,9 @@ from anteater.detections.base import (
 from anteater.scoring.severity import Severity
 
 
-def follow_score(cells: int, sessions: int, span_min: float, min_cells: int, randomised: bool) -> float:
+def follow_score(
+    cells: int, sessions: int, span_min: float, min_cells: int, randomised: bool
+) -> float:
     """0..1. Driven by distinct places, boosted by distinct sessions and time span."""
     if cells < min_cells:
         return 0.0
@@ -74,8 +76,15 @@ class FollowScore(Detector):
         self.last_level[s] = level
         return [
             self.finding(
-                obs, level, "device following you across places", score,
-                places=cells, sessions=sessions, span_minutes=round(span_min, 1),
-                vendor=obs.vendor, ssid=obs.ssid, randomised_mac=is_randomised_mac(s),
+                obs,
+                level,
+                "device following you across places",
+                score,
+                places=cells,
+                sessions=sessions,
+                span_minutes=round(span_min, 1),
+                vendor=obs.vendor,
+                ssid=obs.ssid,
+                randomised_mac=is_randomised_mac(s),
             )
         ]

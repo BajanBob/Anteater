@@ -27,7 +27,7 @@ MOTIFS: dict[Severity, list[tuple[float, float]]] = {
     Severity.LOW: [(660, 0.12), (0, 0.05), (880, 0.12)],
     Severity.MEDIUM: [(523, 0.12), (659, 0.12), (784, 0.18)],
     Severity.HIGH: [(880, 0.1), (0, 0.04), (880, 0.1), (0, 0.04), (1175, 0.22)],
-    Severity.CRITICAL: [(1175, 0.08), (880, 0.08)] * 4 + [(1568, 0.3)],
+    Severity.CRITICAL: [(1175.0, 0.08), (880.0, 0.08)] * 4 + [(1568.0, 0.3)],
 }
 
 
@@ -93,7 +93,9 @@ class AudioSink:
         if self._tts and f.severity >= Severity.MEDIUM:
             text = f"{f.severity.label} alert. {f.title}."
             try:
-                subprocess.Popen([*self._tts, text], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.Popen(
+                    [*self._tts, text], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
             except OSError as exc:
                 log.debug("tts failed: %s", exc)
                 self._tts = None

@@ -29,11 +29,17 @@ def test_engine_resolution():
 
 def test_settings_layers(tmp_path):
     toml = tmp_path / "a.toml"
-    toml.write_text('log_level = "debug"\n[kismet]\nurl = "ws://pi:2501"\n[general]\ngrid_precision = 6\n')
+    toml.write_text(
+        'log_level = "debug"\n[kismet]\nurl = "ws://pi:2501"\n[general]\ngrid_precision = 6\n'
+    )
     env = tmp_path / ".env"
     env.write_text("ANTEATER_GENERAL__GRID_PRECISION=8\nANTEATER_ALERTS__AUDIO=false\n")
-    s = load_settings(toml, env_file=env, environ={"ANTEATER_KISMET__USER": "bob"},
-                      overrides={"kismet": {"password": "pw"}})
+    s = load_settings(
+        toml,
+        env_file=env,
+        environ={"ANTEATER_KISMET__USER": "bob"},
+        overrides={"kismet": {"password": "pw"}},
+    )
     assert s.log_level == "DEBUG"
     assert s.kismet.url == "ws://pi:2501" and s.kismet.http_url == "http://pi:2501"
     assert s.general.grid_precision == 8  # .env beats the TOML file

@@ -19,18 +19,40 @@ from anteater.scoring.severity import Severity
 
 def _obs_row(o: Observation) -> ObservationRow:
     return ObservationRow(
-        id=new_id(), ts=utc(o.ts), kind=o.kind, subject=o.subject, ssid=(o.ssid or None) and o.ssid[:64],
-        channel=o.channel, freq_mhz=o.freq_mhz, rssi=o.rssi, lat=o.lat, lon=o.lon, cell=o.cell,
-        vendor=(o.vendor or None) and o.vendor[:128], crypt=o.crypt, session=o.session,
+        id=new_id(),
+        ts=utc(o.ts),
+        kind=o.kind,
+        subject=o.subject,
+        ssid=(o.ssid or None) and o.ssid[:64],
+        channel=o.channel,
+        freq_mhz=o.freq_mhz,
+        rssi=o.rssi,
+        lat=o.lat,
+        lon=o.lon,
+        cell=o.cell,
+        vendor=(o.vendor or None) and o.vendor[:128],
+        crypt=o.crypt,
+        session=o.session,
         extra={k: v for k, v in o.extra.items() if not k.startswith("_")},
     )
 
 
 def _row_obs(r: ObservationRow) -> Observation:
     return Observation(
-        kind=r.kind, subject=r.subject, ts=_ts(r.ts), ssid=r.ssid, channel=r.channel,
-        freq_mhz=r.freq_mhz, rssi=r.rssi, lat=r.lat, lon=r.lon, cell=r.cell, vendor=r.vendor,
-        crypt=r.crypt, session=r.session, extra=dict(r.extra or {}),
+        kind=r.kind,
+        subject=r.subject,
+        ts=_ts(r.ts),
+        ssid=r.ssid,
+        channel=r.channel,
+        freq_mhz=r.freq_mhz,
+        rssi=r.rssi,
+        lat=r.lat,
+        lon=r.lon,
+        cell=r.cell,
+        vendor=r.vendor,
+        crypt=r.crypt,
+        session=r.session,
+        extra=dict(r.extra or {}),
     )
 
 
@@ -41,9 +63,18 @@ def _ts(dt: datetime) -> float:
 
 def finding_dict(r: FindingRow) -> dict[str, Any]:
     return {
-        "id": r.id, "ts": _ts(r.ts), "engine": r.engine, "severity": Severity(r.severity).label,
-        "title": r.title, "subject": r.subject, "kind": r.kind, "cell": r.cell, "lat": r.lat,
-        "lon": r.lon, "score": r.score, "evidence": r.evidence or {},
+        "id": r.id,
+        "ts": _ts(r.ts),
+        "engine": r.engine,
+        "severity": Severity(r.severity).label,
+        "title": r.title,
+        "subject": r.subject,
+        "kind": r.kind,
+        "cell": r.cell,
+        "lat": r.lat,
+        "lon": r.lon,
+        "score": r.score,
+        "evidence": r.evidence or {},
     }
 
 
@@ -72,19 +103,34 @@ class Repository:
         async with self.sessions.begin() as s:
             await s.merge(
                 FindingRow(
-                    id=f.id, ts=utc(f.ts), engine=f.engine, severity=int(f.severity), title=f.title[:200],
-                    subject=f.subject, kind=f.kind, cell=f.cell, lat=f.lat, lon=f.lon, score=f.score,
+                    id=f.id,
+                    ts=utc(f.ts),
+                    engine=f.engine,
+                    severity=int(f.severity),
+                    title=f.title[:200],
+                    subject=f.subject,
+                    kind=f.kind,
+                    cell=f.cell,
+                    lat=f.lat,
+                    lon=f.lon,
+                    score=f.score,
                     evidence=f.evidence,
                 )
             )
 
     async def start_session(self, session_id: str, note: str | None = None) -> None:
         async with self.sessions.begin() as s:
-            await s.merge(SessionRow(id=session_id, started=utc(time.time()), host=socket.gethostname(), note=note))
+            await s.merge(
+                SessionRow(
+                    id=session_id, started=utc(time.time()), host=socket.gethostname(), note=note
+                )
+            )
 
     async def end_session(self, session_id: str) -> None:
         async with self.sessions.begin() as s:
-            await s.execute(update(SessionRow).where(SessionRow.id == session_id).values(ended=utc(time.time())))
+            await s.execute(
+                update(SessionRow).where(SessionRow.id == session_id).values(ended=utc(time.time()))
+            )
 
     # ---------------------------------------------------------- reads
     async def observations_after(
@@ -101,7 +147,12 @@ class Repository:
             rows = list(
                 await s.scalars(
                     select(ObservationRow)
-                    .where(or_(ObservationRow.ts > t, and_(ObservationRow.ts == t, ObservationRow.id > last_id)))
+                    .where(
+                        or_(
+                            ObservationRow.ts > t,
+                            and_(ObservationRow.ts == t, ObservationRow.id > last_id),
+                        )
+                    )
                     .order_by(ObservationRow.ts, ObservationRow.id)
                     .limit(limit)
                 )
@@ -110,7 +161,9 @@ class Repository:
             return [], cursor
         return [_row_obs(r) for r in rows], (_ts(rows[-1].ts), rows[-1].id)
 
-    async def recent_findings(self, limit: int = 100, min_severity: int = 0) -> list[dict[str, Any]]:
+    async def recent_findings(
+        self, limit: int = 100, min_severity: int = 0
+    ) -> list[dict[str, Any]]:
         async with self.sessions() as s:
             rows = await s.scalars(
                 select(FindingRow)
@@ -123,15 +176,23 @@ class Repository:
     async def stats(self, since_s: float = 86400.0) -> dict[str, Any]:
         cutoff = utc(time.time() - since_s)
         async with self.sessions() as s:
-            obs = await s.scalar(select(func.count()).select_from(ObservationRow).where(ObservationRow.ts >= cutoff))
+            obs = await s.scalar(
+                select(func.count()).select_from(ObservationRow).where(ObservationRow.ts >= cutoff)
+            )
             devices = await s.scalar(
-                select(func.count(func.distinct(ObservationRow.subject))).where(ObservationRow.ts >= cutoff)
+                select(func.count(func.distinct(ObservationRow.subject))).where(
+                    ObservationRow.ts >= cutoff
+                )
             )
             by_sev = await s.execute(
-                select(FindingRow.severity, func.count()).where(FindingRow.ts >= cutoff).group_by(FindingRow.severity)
+                select(FindingRow.severity, func.count())
+                .where(FindingRow.ts >= cutoff)
+                .group_by(FindingRow.severity)
             )
             by_engine = await s.execute(
-                select(FindingRow.engine, func.count()).where(FindingRow.ts >= cutoff).group_by(FindingRow.engine)
+                select(FindingRow.engine, func.count())
+                .where(FindingRow.ts >= cutoff)
+                .group_by(FindingRow.engine)
             )
             return {
                 "window_s": since_s,

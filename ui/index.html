@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anteater</title>
+<style>
+  :root {
+    --bg: #0c0e10; --panel: #14181c; --line: #232a31; --text: #d7dde3; --dim: #7d8a96;
+    --info: #8a96a3; --low: #5fb3d9; --medium: #f0c040; --high: #ff8a3d; --critical: #ff4d5e;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4f5f6; --panel: #ffffff; --line: #dde2e6; --text: #1b2228; --dim: #5d6b77;
+      --info: #6b7884; --low: #1f7fb0; --medium: #a77b00; --high: #c75a10; --critical: #c81d2e;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; align-items: center; gap: 14px; padding: 14px 20px;
+           border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 2; }
+  header h1 { font: 600 17px var(--mono); margin: 0; letter-spacing: .04em; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--critical); }
+  .dot.live { background: #3ccf7a; box-shadow: 0 0 0 4px rgba(60,207,122,.15); }
+  #conn { color: var(--dim); font-size: 13px; }
+  header .spacer { flex: 1; }
+  select, button { font: inherit; font-size: 13px; color: var(--text); background: var(--panel);
+                   border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; }
+  main { max-width: 1180px; margin: 0 auto; padding: 18px 20px 60px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .stat b { display: block; font: 600 24px var(--mono); }
+  .stat span { color: var(--dim); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  #feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .alert { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--sev);
+           border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+  .alert.fresh { animation: flash 1.2s ease-out; }
+  @keyframes flash { from { background: color-mix(in srgb, var(--sev) 22%, var(--panel)); } }
+  .row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .sev { font: 600 11px var(--mono); color: var(--sev); text-transform: uppercase; min-width: 64px; }
+  .title { font-weight: 600; flex: 1; min-width: 200px; }
+  .meta { color: var(--dim); font: 12px var(--mono); }
+  pre { display: none; margin: 10px 0 0; padding: 10px; background: var(--bg); border-radius: 6px;
+        font: 12px/1.5 var(--mono); white-space: pre-wrap; word-break: break-all; color: var(--dim); }
+  .alert.open pre { display: block; }
+  .empty { color: var(--dim); text-align: center; padding: 50px 0; }
+  @media (max-width: 600px) { header { flex-wrap: wrap; padding: 12px 16px; } main { padding: 14px 16px 40px; } }
+</style>
+</head>
+<body>
+<header>
+  <span class="dot" id="dot"></span>
+  <h1>ANTEATER</h1>
+  <span id="conn">connecting…</span>
+  <span class="spacer"></span>
+  <label for="minsev" class="meta">show</label>
+  <select id="minsev">
+    <option value="0">all</option><option value="1" selected>low+</option>
+    <option value="2">medium+</option><option value="3">high+</option><option value="4">critical</option>
+  </select>
+  <button id="sound" aria-pressed="false">sound off</button>
+</header>
+<main>
+  <section class="stats" id="stats"></section>
+  <ul id="feed"><li class="empty" id="empty">No alerts yet. Anteater is listening.</li></ul>
+</main>
+<script>
+const SEV = ["info", "low", "medium", "high", "critical"];
+const feed = document.getElementById("feed");
+const minsev = document.getElementById("minsev");
+const items = [];
+let soundOn = false, audioCtx = null;
+
+try { minsev.value = localStorage.getItem("minsev") ?? "1"; } catch (e) {}
+minsev.onchange = () => { try { localStorage.setItem("minsev", minsev.value); } catch (e) {} render(); };
+
+document.getElementById("sound").onclick = (e) => {
+  soundOn = !soundOn;
+  e.target.textContent = soundOn ? "sound on" : "sound off";
+  e.target.setAttribute("aria-pressed", soundOn);
+  if (soundOn && !audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+};
+
+function beep(level) {
+  if (!soundOn || !audioCtx) return;
+  const notes = [[660], [660, 880], [523, 659, 784], [880, 880, 1175], [1175, 880, 1175, 880, 1568]][level];
+  notes.forEach((f, i) => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.frequency.value = f; g.gain.value = 0.08;
+    o.connect(g).connect(audioCtx.destination);
+    const t = audioCtx.currentTime + i * 0.14;
+    o.start(t); o.stop(t + 0.11);
+  });
+}
+
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const when = (ts) => new Date(ts * 1000).toLocaleString();
+const level = (a) => Math.max(0, SEV.indexOf(a.severity));
+
+function card(a, fresh) {
+  const li = document.createElement("li");
+  li.className = "alert" + (fresh ? " fresh" : "");
+  li.style.setProperty("--sev", `var(--${a.severity})`);
+  li.innerHTML = `<div class="row"><span class="sev">${esc(a.severity)}</span>
+    <span class="title">${esc(a.title)}</span><span class="meta">${esc(a.engine)}</span></div>
+    <div class="row meta"><span>${esc(a.subject)}</span><span>${when(a.ts)}</span>
+    <span>${a.cell ? "cell " + esc(a.cell) : "no GPS"}</span><span>${Math.round((a.score ?? 0) * 100)}%</span></div>
+    <pre>${esc(JSON.stringify(a.evidence ?? {}, null, 2))}</pre>`;
+  li.onclick = () => li.classList.toggle("open");
+  return li;
+}
+
+function render() {
+  const min = Number(minsev.value);
+  feed.replaceChildren();
+  const shown = items.filter((a) => level(a) >= min).slice(0, 300);
+  if (!shown.length) feed.innerHTML = '<li class="empty">No alerts at this level.</li>';
+  shown.forEach((a) => feed.appendChild(card(a, false)));
+}
+
+function add(a) {
+  if (items.some((x) => x.id === a.id)) return;
+  items.unshift(a);
+  if (items.length > 1000) items.pop();
+  if (level(a) >= Number(minsev.value)) {
+    document.getElementById("empty")?.remove();
+    feed.querySelector(".empty")?.remove();
+    feed.prepend(card(a, true));
+    beep(level(a));
+  }
+}
+
+async function loadInitial() {
+  try {
+    const r = await fetch("/api/findings?limit=200");
+    if (r.ok) { (await r.json()).reverse().forEach(add); render(); }
+  } catch (e) {}
+}
+
+async function loadStats() {
+  try {
+    const r = await fetch("/api/stats");
+    if (!r.ok) return;
+    const s = await r.json();
+    const by = s.findings_by_severity || {};
+    const tiles = [["observations", s.observations], ["devices", s.devices],
+      ["high + critical", (by.high || 0) + (by.critical || 0)], ["medium", by.medium || 0], ["low", by.low || 0]];
+    document.getElementById("stats").innerHTML = tiles
+      .map(([k, v]) => `<div class="stat"><b>${Number(v).toLocaleString()}</b><span>${k} · 24 h</span></div>`).join("");
+  } catch (e) {}
+}
+
+function connect() {
+  const ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws/alerts");
+  const dot = document.getElementById("dot"), conn = document.getElementById("conn");
+  ws.onopen = () => { dot.classList.add("live"); conn.textContent = "live"; };
+  ws.onmessage = (e) => { try { add(JSON.parse(e.data)); } catch (err) {} };
+  ws.onclose = () => { dot.classList.remove("live"); conn.textContent = "reconnecting…"; setTimeout(connect, 3000); };
+}
+
+loadInitial(); loadStats(); connect();
+setInterval(loadStats, 15000);
+</script>
+</body>
+</html>

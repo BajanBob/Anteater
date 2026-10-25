@@ -1,0 +1,64 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e ".[dev]"
+      - name: ruff
+        run: python -m ruff check .
+      - name: ruff format
+        run: python -m ruff format --check .
+      - name: mypy
+        run: python -m mypy anteater termite
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: sudo apt-get update && sudo apt-get install -y libportaudio2
+      - run: python -m pip install -e ".[dev,alerts]"
+      - name: tests
+        run: python -m pytest -q -m "not radio and not sdr" --cov=anteater --cov=termite --cov-report=term-missing
+      - name: selftest
+        run: python -m anteater selftest --no-radio
+
+  zipapp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install .
+      - run: python scripts/build_pyz.py
+      - name: run the zipapp
+        run: |
+          cd /tmp
+          python "$GITHUB_WORKSPACE/dist/anteater.pyz" selftest --no-radio

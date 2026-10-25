@@ -27,7 +27,12 @@ jobs:
       - name: ruff format
         run: python -m ruff format --check .
       - name: mypy
-        run: python -m mypy anteater termite
+        # Each error also becomes a GitHub annotation, shown next to the code
+        run: |
+          python -m mypy anteater termite > mypy.txt 2>&1 && { cat mypy.txt; exit 0; }
+          cat mypy.txt
+          sed -nE 's/^([^:]+):([0-9]+): error: (.*)$/::error file=\1,line=\2,title=mypy::\3/p' mypy.txt
+          exit 1
 
   test:
     runs-on: ubuntu-latest

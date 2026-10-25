@@ -1,0 +1,30 @@
+name: Feature or detection request
+description: A new engine, fingerprint, band or improvement
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [New detection engine, Fingerprint / signature, Band plan, termite / SDR, Alerts, Dashboard, Packaging, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What should it catch or do?
+      description: Describe the device or behaviour, and why it matters for surveillance detection.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: How can it be recognised passively?
+      description: OUIs, SSID patterns, BLE service UUIDs, frequencies, papers or captures. Links welcome.
+  - type: checkboxes
+    id: passive
+    attributes:
+      label: Scope
+      options:
+        - label: This can be done receive-only (Anteater never transmits)
+          required: true

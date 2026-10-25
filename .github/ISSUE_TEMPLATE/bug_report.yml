@@ -1,0 +1,57 @@
+name: Bug report
+description: Something doesn't work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **Please don't paste real MAC addresses, SSIDs or locations**;
+        replace them with placeholders like `aa:bb:cc:00:00:01`.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. anteater collect --kismet ws://localhost:2501
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: selftest
+    attributes:
+      label: Output of `anteater selftest`
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Run with ANTEATER_LOG_LEVEL=DEBUG if you can.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Anteater version
+      placeholder: anteater version
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How you installed it
+      options: [pip / source checkout, release executable, AppImage, Windows installer, anteater.pyz]
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: OS, Kismet version, radios
+      placeholder: Raspberry Pi OS 12, Kismet 2025-xx, Alfa AWUS036ACM, RTL-SDR v4

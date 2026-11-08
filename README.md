@@ -7,7 +7,7 @@ Built on [Kismet](https://www.kismetwireless.net/) for the RF layer. Companion
 SDR tool `termite` covers 433 MHz – 15 GHz.
 
 [![ci](https://github.com/USER/anteater/actions/workflows/ci.yml/badge.svg)](https://github.com/USER/anteater/actions/workflows/ci.yml)
-[![licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+[![licence: proprietary](https://img.shields.io/badge/licence-all%20rights%20reserved-red.svg)](LICENSE)
 [![python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
 
 ---
@@ -107,4 +107,5 @@ especially, differ between countries; check yours. Don't use it to track people.
 
 ## Licence
 
-MIT. See [LICENSE](LICENSE).
+
+Copyright (c) 2026 BajanBob. All rights reserved. See [LICENSE](LICENSE).

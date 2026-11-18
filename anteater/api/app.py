@@ -122,6 +122,42 @@ def create_app(
             raise HTTPException(503, "no database configured")
         return await repo.stats(since_s=window)
 
+    @app.get("/api/trail/{subject}")
+    async def trail(subject: str, window: float = 86400.0) -> list[dict[str, Any]]:
+        """Where one device has been, leg by leg (recursive SQL walk)."""
+        if repo is None:
+            raise HTTPException(503, "no database configured")
+        return await repo.device_trail(subject, since_s=window)
+
+    @app.get("/api/chains")
+    async def chains(
+        window: float = 86400.0, gap: float = 120.0, kind: str = "wifi"
+    ) -> list[dict[str, Any]]:
+        """Rotating MAC addresses linked into probable single devices (recursive SQL)."""
+        if repo is None:
+            raise HTTPException(503, "no database configured")
+        return await repo.rotation_chains(since_s=window, gap_s=gap, kind=kind)
+
+    @app.get("/api/timeline")
+    async def timeline(
+        window: float = 3600.0, slot: float = 60.0, kind: str = ""
+    ) -> list[dict[str, Any]]:
+        """Activity per time slot, quiet slots included (recursive SQL series)."""
+        if repo is None:
+            raise HTTPException(503, "no database configured")
+        if window / max(slot, 1.0) > 10000:
+            raise HTTPException(400, "too many slots: widen the slot or shorten the window")
+        return await repo.timeline(since_s=window, width_s=slot, kind=kind)
+
+    @app.get("/api/hotspots")
+    async def hotspots(window: float = 86400.0, min_devices: int = 2) -> list[dict[str, Any]]:
+        """Clusters of touching busy grid cells (recursive flood fill)."""
+        if repo is None:
+            raise HTTPException(503, "no database configured")
+        from anteater.geo import grid
+
+        return grid.hotspots(await repo.cell_counts(since_s=window), min_total=min_devices)
+
     @app.post("/api/observations")
     async def ingest(request: Request) -> JSONResponse:
         try:

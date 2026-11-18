@@ -8,9 +8,10 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import and_, func, or_, select, update
+from sqlalchemy import DateTime, and_, bindparam, func, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
+from anteater.db import recursive as rq
 from anteater.db.models import FindingRow, ObservationRow, SessionRow, new_id, utc
 from anteater.db.session import make_engine, make_sessionmaker
 from anteater.detections.base import Finding, Observation
@@ -172,6 +173,80 @@ class Repository:
                 .limit(limit)
             )
             return [finding_dict(r) for r in rows]
+
+    # ------------------------------------------------- recursive queries
+    def _since(self, since_s: float) -> datetime:
+        return utc(time.time() - since_s)
+
+    async def _rows(self, sql: str, **params: Any) -> list[dict[str, Any]]:
+        stmt = text(sql).bindparams(bindparam("since", type_=DateTime(timezone=True)))
+        async with self.sessions() as s:
+            res = await s.execute(stmt, params)
+            return [dict(r._mapping) for r in res]
+
+    async def device_trail(
+        self, subject: str, since_s: float = 86400.0, max_steps: int = rq.MAX_TRAIL_STEPS
+    ) -> list[dict[str, Any]]:
+        """One device's route, one row per grid cell it stayed in (recursive walk)."""
+        rows = await self._rows(
+            rq.TRAIL_SQL,
+            subject=subject,
+            since=self._since(since_s),
+            max_steps=max(1, min(max_steps, rq.MAX_TRAIL_STEPS)),
+        )
+        for r in rows:
+            r["arrived"] = _ts(rq.as_dt(r["arrived"]))
+            r["departed"] = _ts(rq.as_dt(r["departed"]))
+            r["stay_s"] = round(r["departed"] - r["arrived"], 3)
+        return rows
+
+    async def rotation_chains(
+        self,
+        since_s: float = 86400.0,
+        gap_s: float = 120.0,
+        kind: str = "wifi",
+        max_depth: int = rq.MAX_CHAIN_DEPTH,
+    ) -> list[dict[str, Any]]:
+        """MAC addresses that are probably one phone rotating its address (recursive chain)."""
+        rows = await self._rows(
+            rq.chains_sql(self.engine.dialect.name),
+            since=self._since(since_s),
+            gap=float(gap_s),
+            kind=kind,
+            max_depth=max(1, min(max_depth, rq.MAX_CHAIN_DEPTH)),
+        )
+        return rq.group_chains(rows)
+
+    async def timeline(
+        self, since_s: float = 3600.0, width_s: float = 60.0, kind: str = ""
+    ) -> list[dict[str, Any]]:
+        """Sightings per fixed slot, silent slots included (recursive slot series)."""
+        width = max(1.0, float(width_s))
+        stop = time.time()
+        start = stop - since_s
+        rows = await self._rows(
+            rq.slots_sql(self.engine.dialect.name),
+            since=self._since(since_s),
+            start=start,
+            stop=stop,
+            width=width,
+            kind=kind,
+            max_slots=rq.MAX_SLOTS,
+        )
+        return [
+            {"t0": float(r["t0"]), "sightings": int(r["sightings"]), "devices": int(r["devices"])}
+            for r in rows
+        ]
+
+    async def cell_counts(self, since_s: float = 86400.0) -> dict[str, int]:
+        cutoff = self._since(since_s)
+        async with self.sessions() as s:
+            res = await s.execute(
+                select(ObservationRow.cell, func.count(func.distinct(ObservationRow.subject)))
+                .where(ObservationRow.ts >= cutoff, ObservationRow.cell.is_not(None))
+                .group_by(ObservationRow.cell)
+            )
+            return {c: int(n) for c, n in res}
 
     async def stats(self, since_s: float = 86400.0) -> dict[str, Any]:
         cutoff = utc(time.time() - since_s)

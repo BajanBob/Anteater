@@ -65,6 +65,19 @@ anteater detect --replay tests/data/sample.jsonl --engines all
 
 ---
 
+## Recursive queries
+
+The database answers four questions with recursion. The SQL runs unchanged on SQLite and on PostgreSQL/TimescaleDB, and every recursion has a hard limit, so bad data can't make a query run forever.
+
+| Endpoint | What it shows | How |
+|---|---|---|
+| `/api/trail/{mac}` | Where one device has been, leg by leg, with how long it stayed in each grid square | `WITH RECURSIVE` walk over its sightings in time order (up to 5,000 steps) |
+| `/api/chains` | Random MAC addresses that are probably one phone changing its address | `WITH RECURSIVE` chain: B follows A when it appears within `gap` seconds of A going quiet, probing the same SSID in the same square (up to 50 hops, no loops) |
+| `/api/timeline` | Sightings and devices per time slot, quiet slots included | `WITH RECURSIVE` slot series joined to the sightings (up to 10,000 slots) |
+| `/api/hotspots` | Clusters of touching busy grid squares | Recursive flood fill in Python (`anteater.geo.grid.clusters`), safe for any cluster size |
+
+`anteater.geo.grid.rollup()` recursively groups per-square counts into a zoomable tree for maps. The queries are in `anteater/db/recursive.py`.
+
 ## termite (SDR)
 
 ```bash

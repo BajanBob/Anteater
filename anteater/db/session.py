@@ -45,13 +45,15 @@ async def create_all(engine: AsyncEngine) -> None:
 
 async def make_hypertable(conn: AsyncConnection) -> None:
     """Turn observations into a TimescaleDB hypertable when the extension is there."""
+    # A savepoint, so a missing extension doesn't abort the transaction that just created the tables.
     try:
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
-        await conn.execute(
-            text(
-                "SELECT create_hypertable('observations', 'ts', if_not_exists => TRUE, migrate_data => TRUE)"
+        async with conn.begin_nested():
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
+            await conn.execute(
+                text(
+                    "SELECT create_hypertable('observations', 'ts', if_not_exists => TRUE, migrate_data => TRUE)"
+                )
             )
-        )
     except Exception as exc:  # plain PostgreSQL works too, just without compression/retention
         log.info("TimescaleDB not available (%s); using a plain table", exc.__class__.__name__)
 

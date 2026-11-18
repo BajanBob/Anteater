@@ -246,7 +246,7 @@ class Repository:
                 .where(ObservationRow.ts >= cutoff, ObservationRow.cell.is_not(None))
                 .group_by(ObservationRow.cell)
             )
-            return {c: int(n) for c, n in res}
+            return {c: int(n) for c, n in res if c is not None}
 
     async def stats(self, since_s: float = 86400.0) -> dict[str, Any]:
         cutoff = utc(time.time() - since_s)
